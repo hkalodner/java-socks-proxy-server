@@ -7,7 +7,7 @@ import org.jdamico.socks.server.impl.ProxyServerInitiator;
 
 public class StartProxy {
 	
-	public static	boolean	enableDebugLog = false;
+	public static	boolean	enableDebugLog = true;
 	public static void main(String[] args) {
 		
 		/*
