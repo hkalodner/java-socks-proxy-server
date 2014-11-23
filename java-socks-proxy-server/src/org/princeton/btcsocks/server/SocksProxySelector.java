@@ -44,6 +44,8 @@ public class SocksProxySelector extends ProxySelector {
 	HashMap<SocketAddress, InnerProxy> proxies = new HashMap<SocketAddress, InnerProxy>();
 
 	public SocksProxySelector(ProxySelector def) {
+		
+		System.out.println("Running constructor");
 		// Save the previous default
 		defsel = def;
 
@@ -66,6 +68,11 @@ public class SocksProxySelector extends ProxySelector {
 		if (uri == null) {
 			throw new IllegalArgumentException("URI can't be null.");
 		}
+		
+		System.out.println("Trying to select");
+		System.out.println("scheme = " + uri.getScheme());
+		System.out.println("host = " + uri.getHost());
+		System.out.println("port = " + uri.getPort());
 
 		/*
 		 * If it's a http (or https) URL, then we use our own

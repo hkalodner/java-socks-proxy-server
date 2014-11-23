@@ -1,8 +1,11 @@
 package org.jdamico.socks.server;
 
 
+import java.net.ProxySelector;
+
 import org.jdamico.socks.server.commons.Constants;
 import org.jdamico.socks.server.impl.ProxyServerInitiator;
+import org.princeton.btcsocks.server.SocksProxySelector;
 
 
 public class StartProxy {
@@ -14,6 +17,9 @@ public class StartProxy {
 		 * enableDebugLog
 		 * listenPort
 		 */
+		
+		SocksProxySelector ps = new SocksProxySelector(ProxySelector.getDefault());
+        ProxySelector.setDefault(ps);
 		
 		int port = Constants.LISTEN_PORT;
 		
