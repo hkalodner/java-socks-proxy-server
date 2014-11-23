@@ -22,7 +22,7 @@ public class SocksProxySelector extends ProxySelector {
 
 		InnerProxy(InetSocketAddress a) {
 			addr = a;
-			proxy = new Proxy(Proxy.Type.HTTP, a);
+			proxy = new Proxy(Proxy.Type.SOCKS, a);
 		}
 
 		SocketAddress address() {
@@ -50,11 +50,7 @@ public class SocksProxySelector extends ProxySelector {
 		defsel = def;
 
 		// Populate the HashMap (List of proxies)
-		InnerProxy i = new InnerProxy(new InetSocketAddress("webcache1.example.com", 8080));
-		proxies.put(i.address(), i);
-		i = new InnerProxy(new InetSocketAddress("webcache2.example.com", 8080));
-		proxies.put(i.address(), i);
-		i = new InnerProxy(new InetSocketAddress("webcache3.example.com", 8080));
+		InnerProxy i = new InnerProxy(new InetSocketAddress("10.9.138.0", 8888));
 		proxies.put(i.address(), i);
 	}
 
@@ -79,15 +75,16 @@ public class SocksProxySelector extends ProxySelector {
 		 * list.
 		 */
 		String protocol = uri.getScheme();
-		if ("http".equalsIgnoreCase(protocol) ||
-				"https".equalsIgnoreCase(protocol)) {
+		if("socket".equalsIgnoreCase(protocol)) {
 			ArrayList<Proxy> l = new ArrayList<Proxy>();
 			for (InnerProxy p : proxies.values()) {
 				l.add(p.toProxy());
 			}
 			return l;
 		}
-
+		
+		
+		System.out.println("Going with default");
 		/*
 		 * Not HTTP or HTTPS (could be SOCKS or FTP)
 		 * defer to the default selector.
