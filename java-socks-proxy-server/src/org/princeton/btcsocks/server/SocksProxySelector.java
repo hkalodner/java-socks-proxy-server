@@ -10,6 +10,7 @@ import java.io.IOException;
 public class SocksProxySelector extends ProxySelector {
 	// Keep a reference on the previous default
 	ProxySelector defsel = null;
+	private int requestNum = 0;
 
 	/*
 	 * Inner class representing a Proxy and a few extra data
@@ -52,6 +53,9 @@ public class SocksProxySelector extends ProxySelector {
 		// Populate the HashMap (List of proxies)
 		InnerProxy i = new InnerProxy(new InetSocketAddress("10.9.138.0", 8888));
 		proxies.put(i.address(), i);
+		
+		i = new InnerProxy(new InetSocketAddress("10.9.141.123", 8888));
+		proxies.put(i.address(), i);
 	}
 
 	/*
@@ -65,6 +69,8 @@ public class SocksProxySelector extends ProxySelector {
 			throw new IllegalArgumentException("URI can't be null.");
 		}
 		
+		requestNum++;
+		
 		System.out.println("Trying to select");
 		System.out.println("scheme = " + uri.getScheme());
 		System.out.println("host = " + uri.getHost());
@@ -77,8 +83,14 @@ public class SocksProxySelector extends ProxySelector {
 		String protocol = uri.getScheme();
 		if("socket".equalsIgnoreCase(protocol)) {
 			ArrayList<Proxy> l = new ArrayList<Proxy>();
+			
+			int proxNum = requestNum % proxies.size();
+			int i = 0;
 			for (InnerProxy p : proxies.values()) {
-				l.add(p.toProxy());
+				if (i == proxNum) {
+					l.add(p.toProxy());
+				}
+				i++;
 			}
 			return l;
 		}
