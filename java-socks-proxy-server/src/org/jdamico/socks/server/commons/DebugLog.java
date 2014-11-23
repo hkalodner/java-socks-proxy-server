@@ -7,7 +7,7 @@ package	org.jdamico.socks.server.commons;
 import java.net.DatagramPacket;
 import java.net.Socket;
 
-import org.jdamico.socks.server.StartProxy;
+import org.jdamico.socks.server.StartClientProxy;
 
 
 
@@ -24,12 +24,12 @@ public class DebugLog
 
 	
 	public	void	println( String txt )	{
-		if( StartProxy.enableDebugLog )	print( txt + Constants.EOL );
+		if( StartClientProxy.enableDebugLog )	print( txt + Constants.EOL );
 	}
 
 	
 	public	void	print( String txt )	{
-		if( !StartProxy.enableDebugLog )	return;
+		if( !StartClientProxy.enableDebugLog )	return;
 		if( txt == null )	return;
 		System.out.print( txt );	
 	}
@@ -37,13 +37,13 @@ public class DebugLog
 	/////////////////////////////////////////////////
 	
 	public	void	error( String txt )	{
-		if( StartProxy.enableDebugLog )	println( "Error : " + txt );
+		if( StartClientProxy.enableDebugLog )	println( "Error : " + txt );
 	}
 	
 	/////////////////////////////////////////////////
 	
 	public	void	error( Exception e )	{
-		if( !StartProxy.enableDebugLog )	return;
+		if( !StartClientProxy.enableDebugLog )	return;
 		println( "ERROR : " + e.toString() );
 		e.printStackTrace();
 	}
