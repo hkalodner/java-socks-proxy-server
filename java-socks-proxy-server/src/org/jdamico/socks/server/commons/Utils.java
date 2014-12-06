@@ -5,21 +5,15 @@ import java.net.UnknownHostException;
 
 public class Utils {
 	
-	private static Utils INSTANCE = null;
 	private Utils() {}
-	
-	public static Utils getInstance(){
-		if(INSTANCE == null) INSTANCE = new Utils();
-		return INSTANCE;
-	}
 
 	
-	public	InetAddress	calcInetAddress( byte[] addr )	{
+	public static InetAddress calcInetAddress( byte[] addr, DebugLog debugLog)	{
 		InetAddress	IA  = null;
 		String		sIA = "";		
 		
 		if( addr.length < 4 )	{
-			DebugLog.getInstance().error( "calcInetAddress() - Invalid length of IP v4 - "+addr.length+" bytes" );	
+			debugLog.error( "calcInetAddress() - Invalid length of IP v4 - "+addr.length+" bytes" );	
 			return null;
 		}
 		
@@ -39,20 +33,20 @@ public class Utils {
 		return	IA; // IP Address
 	}
 	
-	public	int	byte2int( byte b )	{
+	public static int byte2int( byte b )	{
 		int	res = b;
 		if( res < 0 ) res = (int)( 0x100 + res );
 		return	res;
 	}
 
 	
-	public	int	calcPort( byte Hi, byte Lo )	{
+	public static int calcPort( byte Hi, byte Lo )	{
 		
 		return ( (byte2int( Hi ) << 8) | byte2int( Lo ) );	
 	}
 	
 	
-	public	String	iP2Str( InetAddress IP )	{
+	public static String	iP2Str( InetAddress IP )	{
 		if( IP == null )	return "NA/NA";
 		
 		return	IP.getHostName()+"/"+IP.getHostAddress();

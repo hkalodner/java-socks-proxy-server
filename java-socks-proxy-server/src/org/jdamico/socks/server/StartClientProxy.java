@@ -10,7 +10,6 @@ import org.princeton.btcsocks.server.SocksProxySelector;
 
 public class StartClientProxy {
 	
-	public static	boolean	enableDebugLog = true;
 	public static void main(String[] args) {
 		
 		/*
@@ -22,6 +21,7 @@ public class StartClientProxy {
         ProxySelector.setDefault(ps);
 		
 		int port = Constants.LISTEN_PORT;
+		boolean enableDebugLog = true;
 		
 		String noParamsMsg = "Unable to parse command-line parameters, using default configuration.";
 		
@@ -36,7 +36,7 @@ public class StartClientProxy {
 			}
 		}else System.out.println(noParamsMsg);
 		
-		new ProxyServerInitiator(port).start();
+		new ProxyServerInitiator(port, enableDebugLog).start();
 	}
 	
 }

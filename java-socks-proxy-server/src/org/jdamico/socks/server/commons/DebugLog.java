@@ -7,29 +7,22 @@ package	org.jdamico.socks.server.commons;
 import java.net.DatagramPacket;
 import java.net.Socket;
 
-import org.jdamico.socks.server.StartClientProxy;
-
-
-
 public class DebugLog
 {
 	
-	private static DebugLog INSTANCE = null;
-	private DebugLog() {}
+	public boolean enabled;
 	
-	public static DebugLog getInstance(){
-		if(INSTANCE == null) INSTANCE = new DebugLog();
-		return INSTANCE;
+	public DebugLog(boolean enabled) {
+		this.enabled = enabled;
 	}
-
 	
 	public	void	println( String txt )	{
-		if( StartClientProxy.enableDebugLog )	print( txt + Constants.EOL );
+		if(enabled)	print( txt + Constants.EOL );
 	}
 
 	
 	public	void	print( String txt )	{
-		if( !StartClientProxy.enableDebugLog )	return;
+		if( !enabled)	return;
 		if( txt == null )	return;
 		System.out.print( txt );	
 	}
@@ -37,13 +30,13 @@ public class DebugLog
 	/////////////////////////////////////////////////
 	
 	public	void	error( String txt )	{
-		if( StartClientProxy.enableDebugLog )	println( "Error : " + txt );
+		if(enabled)	println( "Error : " + txt );
 	}
 	
 	/////////////////////////////////////////////////
 	
 	public	void	error( Exception e )	{
-		if( !StartClientProxy.enableDebugLog )	return;
+		if( !enabled)	return;
 		println( "ERROR : " + e.toString() );
 		e.printStackTrace();
 	}
@@ -54,7 +47,7 @@ public class DebugLog
 	
 		if( sock == null )	return "<NA/NA:0>";
 		
-		return	"<"+Utils.getInstance().iP2Str( sock.getInetAddress() )+":"+
+		return	"<"+Utils.iP2Str( sock.getInetAddress() )+":"+
 				sock.getPort() + ">";
 	}
 	
@@ -64,7 +57,7 @@ public class DebugLog
 	
 		if( DGP == null )	return "<NA/NA:0>";
 		
-		return	"<"+Utils.getInstance().iP2Str( DGP.getAddress() )+":"+
+		return	"<"+Utils.iP2Str( DGP.getAddress() )+":"+
 				DGP.getPort() + ">";
 	}
 	

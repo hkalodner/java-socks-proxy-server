@@ -27,12 +27,15 @@ public class ProxyServerInitiator	implements	Runnable
 	protected	int				m_nPort			= 0;
 	
 	public	int		getPort()		{	return	m_nPort;		}
+	
+	private DebugLog debugLog;
 
-	public	ProxyServerInitiator(int listenPort) {
+	public	ProxyServerInitiator(int listenPort, boolean enableDebugLog) {
 		
 		m_lock = this;	
 		m_nPort			= listenPort;
-		DebugLog.getInstance().println( "SOCKS Server Created." );
+		debugLog = new DebugLog(enableDebugLog);
+		debugLog.println( "SOCKS Server Created." );
 	}
 	
 	public	void setLock( Object lock ) {
@@ -43,12 +46,12 @@ public class ProxyServerInitiator	implements	Runnable
 	public	void start() {
 		m_TheThread = new Thread( this );
 		m_TheThread.start();
-		DebugLog.getInstance().println( "SOCKS Server Started." );
+		debugLog.println( "SOCKS Server Started." );
 	}
 
 	public	void	stop()	{
 		
-		DebugLog.getInstance().println( "SOCKS Server Stopped." );
+		debugLog.println( "SOCKS Server Stopped." );
 		m_TheThread.interrupt();
 	}
 	
@@ -70,7 +73,7 @@ public class ProxyServerInitiator	implements	Runnable
 		}
 		m_ListenSocket = null;
 		
-		DebugLog.getInstance().println( "SOCKS Server Closed." );
+		debugLog.println( "SOCKS Server Closed." );
 	}
 	
 	public	boolean	isActive()	{
@@ -87,7 +90,7 @@ public class ProxyServerInitiator	implements	Runnable
 			if( m_nPort == 0 )	{
 				m_nPort = m_ListenSocket.getLocalPort();
 			}
-			DebugLog.getInstance().println( "SOCKS Server Listen at Port : " + m_nPort );
+			debugLog.println( "SOCKS Server Listen at Port : " + m_nPort );
 		}
 	}
 	
@@ -98,12 +101,12 @@ public class ProxyServerInitiator	implements	Runnable
 			prepareToListen();
 		}
 		catch( java.net.BindException e )	{
-			DebugLog.getInstance().error( "The Port "+m_nPort+" is in use !" );
-			DebugLog.getInstance().error( e );
+			debugLog.error( "The Port "+m_nPort+" is in use !" );
+			debugLog.error( e );
 			return;
 		}
 		catch( IOException e )	{
-			DebugLog.getInstance().error( "IO Error Binding at port : "+m_nPort );
+			debugLog.error( "IO Error Binding at port : "+m_nPort );
 			return;
 		}
 
@@ -123,15 +126,15 @@ public class ProxyServerInitiator	implements	Runnable
 			{
 				Socket clientSocket = m_ListenSocket.accept();
 				clientSocket.setSoTimeout( Constants.DEFAULT_SERVER_TIMEOUT );
-				DebugLog.getInstance().println( "Connection from : " + DebugLog.getInstance().getSocketInfo( clientSocket ) );
-				ProxyHandler proxy = new ProxyHandler(clientSocket );
+				debugLog.println( "Connection from : " + debugLog.getSocketInfo( clientSocket ) );
+				ProxyHandler proxy = new ProxyHandler(clientSocket, debugLog);
 				proxy.start();
 			}
 			catch( InterruptedIOException e )		{
 			//	This exception is thrown when accept timeout is expired
 			}
 			catch( Exception e )	{
-				DebugLog.getInstance().error( e );
+				debugLog.error( e );
 			}
 		}	// synchronized
 	}

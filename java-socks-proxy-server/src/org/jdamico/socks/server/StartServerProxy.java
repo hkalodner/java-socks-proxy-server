@@ -1,16 +1,12 @@
 package org.jdamico.socks.server;
 
 
-import java.net.ProxySelector;
-
 import org.jdamico.socks.server.commons.Constants;
 import org.jdamico.socks.server.impl.ProxyServerInitiator;
-import org.princeton.btcsocks.server.SocksProxySelector;
-
 
 public class StartServerProxy {
 	
-	public static	boolean	enableDebugLog = true;
+	public	boolean	enableDebugLog = true;
 	public static void main(String[] args) {
 		
 		/*
@@ -21,6 +17,8 @@ public class StartServerProxy {
 		int port = Constants.LISTEN_PORT;
 		
 		String noParamsMsg = "Unable to parse command-line parameters, using default configuration.";
+		
+		boolean enableDebugLog = true;
 		
 		if(args.length == 2){
 			try {
@@ -33,7 +31,7 @@ public class StartServerProxy {
 			}
 		}else System.out.println(noParamsMsg);
 		
-		new ProxyServerInitiator(port).start();
+		new ProxyServerInitiator(port, enableDebugLog).start();
 	}
 	
 }
