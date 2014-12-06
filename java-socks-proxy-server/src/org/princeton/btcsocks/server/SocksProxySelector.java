@@ -3,7 +3,12 @@ package org.princeton.btcsocks.server;
 import java.net.*;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 import java.io.IOException;
+
+import org.princeton.btsocks.discovery.RemoteProxyAddress;
+
+import com.google.common.net.InetAddresses;
 
 // Taken from https://docs.oracle.com/javase/8/docs/technotes/guides/net/proxies.html
 
@@ -13,36 +18,9 @@ public class SocksProxySelector extends ProxySelector {
 	private int requestNum = 0;
 
 	/*
-	 * Inner class representing a Proxy and a few extra data
-	 */
-	class InnerProxy {
-		Proxy proxy;
-		SocketAddress addr;
-		// How many times did we fail to reach this proxy?
-		int failedCount = 0;
-
-		InnerProxy(InetSocketAddress a) {
-			addr = a;
-			proxy = new Proxy(Proxy.Type.SOCKS, a);
-		}
-
-		SocketAddress address() {
-			return addr;
-		}
-
-		Proxy toProxy() {
-			return proxy;
-		}
-
-		int failed() {
-			return ++failedCount;
-		}
-	}
-
-	/*
 	 * A list of proxies, indexed by their address.
 	 */
-	HashMap<SocketAddress, InnerProxy> proxies = new HashMap<SocketAddress, InnerProxy>();
+	Map<SocketAddress, RemoteProxyAddress> proxies = new HashMap<SocketAddress, RemoteProxyAddress>();
 
 	public SocksProxySelector(ProxySelector def) {
 		
@@ -51,11 +29,17 @@ public class SocksProxySelector extends ProxySelector {
 		defsel = def;
 
 		// Populate the HashMap (List of proxies)
-		InnerProxy i = new InnerProxy(new InetSocketAddress("10.9.138.0", 8888));
-		proxies.put(i.address(), i);
 		
-		i = new InnerProxy(new InetSocketAddress("10.9.141.123", 8888));
-		proxies.put(i.address(), i);
+		try {
+			RemoteProxyAddress i = new RemoteProxyAddress(InetAddress.getByName("10.9.138.0"), 8888);
+			proxies.put(i.address(), i);
+			i = new RemoteProxyAddress(InetAddress.getByName("10.9.141.123"), 8888);
+			proxies.put(i.address(), i);
+		} catch (UnknownHostException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 	}
 
 	/*
@@ -86,7 +70,7 @@ public class SocksProxySelector extends ProxySelector {
 			
 			int proxNum = requestNum % proxies.size();
 			int i = 0;
-			for (InnerProxy p : proxies.values()) {
+			for (RemoteProxyAddress p : proxies.values()) {
 				if (i == proxNum) {
 					l.add(p.toProxy());
 				}
@@ -124,7 +108,7 @@ public class SocksProxySelector extends ProxySelector {
 		/*
 		 * Let's lookup for the proxy 
 		 */
-		InnerProxy p = proxies.get(sa); 
+		RemoteProxyAddress p = proxies.get(sa); 
 		if (p != null) {
 			/*
 			 * It's one of ours, if it failed more than 3 times
