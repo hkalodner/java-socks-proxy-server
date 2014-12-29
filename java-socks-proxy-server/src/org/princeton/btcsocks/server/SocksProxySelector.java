@@ -3,9 +3,11 @@ package org.princeton.btcsocks.server;
 import java.net.*;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.io.IOException;
 
+import org.princeton.btsocks.discovery.BittorrentDiscovery;
 import org.princeton.btsocks.discovery.RemoteProxyAddress;
 
 import com.google.common.net.InetAddresses;
@@ -31,11 +33,16 @@ public class SocksProxySelector extends ProxySelector {
 		// Populate the HashMap (List of proxies)
 		
 		try {
-			RemoteProxyAddress i = new RemoteProxyAddress(InetAddress.getByName("10.9.138.0"), 8888);
-			proxies.put(i.address(), i);
-			i = new RemoteProxyAddress(InetAddress.getByName("10.9.141.123"), 8888);
-			proxies.put(i.address(), i);
+			BittorrentDiscovery discovery = new BittorrentDiscovery(InetAddress.getLocalHost(), 6969);
+			List<RemoteProxyAddress> proxyList = discovery.getProxies();
+			for (RemoteProxyAddress proxyAddress : proxyList) {
+				proxies.put(proxyAddress.address(), proxyAddress);
+				System.out.println(proxyAddress);
+			}
 		} catch (UnknownHostException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}

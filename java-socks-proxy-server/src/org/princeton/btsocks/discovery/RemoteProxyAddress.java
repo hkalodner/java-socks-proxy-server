@@ -29,4 +29,7 @@ public class RemoteProxyAddress {
 		return ++failedCount;
 	}
 
+	public String toString() {
+		return address.toString();
+	}
 }

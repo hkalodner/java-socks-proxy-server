@@ -39,7 +39,6 @@ public class BittorrentDiscovery {
         
         ByteBuffer announceResponse = ByteBuffer.wrap(announceResponsePacket.getData());
         announceResponse.order(ByteOrder.BIG_ENDIAN);
-        
         TrackerAction action = TrackerAction.valueOf(announceResponse.getInt());
         if (action != TrackerAction.ANNOUNCE) {
             System.out.println("action != TrackerAction.ANNOUNCE");
@@ -69,7 +68,6 @@ public class BittorrentDiscovery {
             byte[] portBuffer = new byte[2];
             announceResponse.get(portBuffer);
             int port = ((portBuffer[0] & 0xFF) << 8) | (portBuffer[1] & 0xFF);
-            System.out.println(port);
             peers.add(new RemoteProxyAddress(address, port));
         }
         
