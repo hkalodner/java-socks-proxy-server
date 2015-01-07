@@ -76,6 +76,7 @@ public class BittorrentDiscovery {
     
     public void announceProxy(int port) throws IOException {
         ConnectResponseValues connectValues = announceRequest(port);
+        System.out.println("Announcing server on port " + port);
         connectValues.socket.close();
     }
     

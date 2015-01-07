@@ -25,20 +25,23 @@ public class SocksProxySelector extends ProxySelector {
 	Map<SocketAddress, RemoteProxyAddress> proxies = new HashMap<SocketAddress, RemoteProxyAddress>();
 
 	public SocksProxySelector(ProxySelector def) {
-		
 		System.out.println("Running constructor");
 		// Save the previous default
 		defsel = def;
 
 		// Populate the HashMap (List of proxies)
-		
+		List<RemoteProxyAddress> proxyList = getActiveProxies();
+		for (RemoteProxyAddress proxyAddress : proxyList) {
+			proxies.put(proxyAddress.address(), proxyAddress);
+			System.out.println(proxyAddress);
+		}
+	}
+	
+	public List<RemoteProxyAddress> getActiveProxies() {
 		try {
 			BittorrentDiscovery discovery = new BittorrentDiscovery(InetAddress.getLocalHost(), 6969);
 			List<RemoteProxyAddress> proxyList = discovery.getProxies();
-			for (RemoteProxyAddress proxyAddress : proxyList) {
-				proxies.put(proxyAddress.address(), proxyAddress);
-				System.out.println(proxyAddress);
-			}
+			return proxyList;
 		} catch (UnknownHostException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -46,35 +49,35 @@ public class SocksProxySelector extends ProxySelector {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
+		return null;
 	}
 
 	/*
-	 * This is the method that the handlers will call.
-	 * Returns a List of proxy.
+	 * This is the method that the handlers will call. Returns a List of proxy.
 	 */
 	@Override
 	public java.util.List<Proxy> select(URI uri) {
-		// Let's stick to the specs. 
+		// Let's stick to the specs.
 		if (uri == null) {
 			throw new IllegalArgumentException("URI can't be null.");
 		}
-		
+
 		requestNum++;
-		
+
 		System.out.println("Trying to select");
 		System.out.println("scheme = " + uri.getScheme());
 		System.out.println("host = " + uri.getHost());
 		System.out.println("port = " + uri.getPort());
 
 		/*
-		 * If it's a http (or https) URL, then we use our own
-		 * list.
+		 * If it's a http (or https) URL, then we use our own list.
 		 */
 		String protocol = uri.getScheme();
-		if("socket".equalsIgnoreCase(protocol)) {
+		if ("socket".equalsIgnoreCase(protocol)) {
+			List<RemoteProxyAddress> test = getActiveProxies();
+			System.out.println(test);
 			ArrayList<Proxy> l = new ArrayList<Proxy>();
-			
+			assert proxies.size() > 0;
 			int proxNum = requestNum % proxies.size();
 			int i = 0;
 			for (RemoteProxyAddress p : proxies.values()) {
@@ -85,12 +88,11 @@ public class SocksProxySelector extends ProxySelector {
 			}
 			return l;
 		}
-		
-		
+
 		System.out.println("Going with default");
 		/*
-		 * Not HTTP or HTTPS (could be SOCKS or FTP)
-		 * defer to the default selector.
+		 * Not HTTP or HTTPS (could be SOCKS or FTP) defer to the default
+		 * selector.
 		 */
 		if (defsel != null) {
 			return defsel.select(uri);
@@ -102,8 +104,8 @@ public class SocksProxySelector extends ProxySelector {
 	}
 
 	/*
-	 * Method called by the handlers when it failed to connect
-	 * to one of the proxies returned by select().
+	 * Method called by the handlers when it failed to connect to one of the
+	 * proxies returned by select().
 	 */
 	@Override
 	public void connectFailed(URI uri, SocketAddress sa, IOException ioe) {
@@ -113,13 +115,13 @@ public class SocksProxySelector extends ProxySelector {
 		}
 
 		/*
-		 * Let's lookup for the proxy 
+		 * Let's lookup for the proxy
 		 */
-		RemoteProxyAddress p = proxies.get(sa); 
+		RemoteProxyAddress p = proxies.get(sa);
 		if (p != null) {
 			/*
-			 * It's one of ours, if it failed more than 3 times
-			 * let's remove it from the list.
+			 * It's one of ours, if it failed more than 3 times let's remove it
+			 * from the list.
 			 */
 			if (p.failed() >= 3)
 				proxies.remove(sa);

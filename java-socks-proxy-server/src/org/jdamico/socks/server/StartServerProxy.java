@@ -21,7 +21,7 @@ public class StartServerProxy {
 		 * listenPort
 		 */
 		
-		int port = Constants.LISTEN_PORT;
+		int port = 0;
 		
 		String noParamsMsg = "Unable to parse command-line parameters, using default configuration.";
 		
@@ -38,13 +38,15 @@ public class StartServerProxy {
 			}
 		}else System.out.println(noParamsMsg);
 		
-		new ProxyServerInitiator(port, enableDebugLog).start();
-		
 		try {
+			ProxyServerInitiator proxyServerInitiator = new ProxyServerInitiator(port, enableDebugLog);
+			proxyServerInitiator.start();
+			System.out.println("Starting proxy server on port " + port);
 			BittorrentDiscovery discovery = new BittorrentDiscovery(InetAddress.getLocalHost(), 6969);
-			discovery.announceProxy(port);
+			discovery.announceProxy(proxyServerInitiator.getPort());
+			System.out.println("Advertising server on bittorrent");
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
+			// TODO Auto-generated catch =block
 			e.printStackTrace();
 		}
 		
