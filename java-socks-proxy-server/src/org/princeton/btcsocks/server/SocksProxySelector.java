@@ -25,6 +25,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 
 import static org.bitcoinj.core.Coin.CENT;
+import static org.bitcoinj.core.Coin.COIN;
 
 import java.net.*;
 import java.util.ArrayList;
@@ -69,7 +70,7 @@ public class SocksProxySelector extends ProxySelector {
 
 
 		BriefLogFormatter.init();
-		channelSize = CENT;
+		channelSize = COIN;
 		myKey = new ECKey();
 		params = RegTestParams.get();
 

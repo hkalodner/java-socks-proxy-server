@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.examples;
+package org.jdamico.socks.server;
 
 import org.bitcoinj.core.Coin;
 import org.bitcoinj.core.NetworkParameters;
@@ -35,6 +35,8 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.net.SocketAddress;
 import java.util.List;
+
+import static org.bitcoinj.core.Coin.COIN;
 
 /**
  * Simple server that listens on port 4242 for incoming payment channels.
@@ -73,7 +75,7 @@ public class ExamplePaymentChannelServer implements PaymentChannelServerListener
 
         // We provide a peer group, a wallet, a timeout in seconds, the amount we require to start a channel and
         // an implementation of HandlerFactory, which we just implement ourselves.
-        new PaymentChannelServerListener(appKit.peerGroup(), appKit.wallet(), 15, Coin.valueOf(100000), this).bindAndStart(4242);
+        new PaymentChannelServerListener(appKit.peerGroup(), appKit.wallet(), 15, COIN, this).bindAndStart(4242);
     }
 
     @Override
