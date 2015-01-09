@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.examples;
+package org.princeton.btcsocks.server;
 
 import org.bitcoinj.core.*;
 import org.bitcoinj.kits.WalletAppKit;

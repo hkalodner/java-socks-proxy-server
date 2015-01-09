@@ -2,7 +2,6 @@ package org.princeton.btcsocks.server;
 //package org.bitcoinj.examples;
 
 import org.bitcoinj.core.*;
-import org.bitcoinj.examples.ExamplePaymentChannelClient;
 import org.bitcoinj.kits.WalletAppKit;
 import org.bitcoinj.params.RegTestParams;
 import org.bitcoinj.protocols.channels.PaymentChannelClientConnection;
