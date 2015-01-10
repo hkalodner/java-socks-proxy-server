@@ -191,6 +191,7 @@ public class Socks4Impl implements SocksCommonInterface {
 
 		m_Parent.m_debugLog.println( "Connecting..." );
 	//	Connect to the Remote Host
+		System.out.println("m_ServerIP " + m_ServerIP.getHostAddress() + " and m_nServerPort " + m_nServerPort);
 		try	{
 			m_Parent.connectToServer( m_ServerIP.getHostAddress(), m_nServerPort );
 		}
@@ -201,6 +202,7 @@ public class Socks4Impl implements SocksCommonInterface {
 		}
 		
 		m_Parent.m_debugLog.println( "Connected to "+m_Parent.m_debugLog.getSocketInfo( m_Parent.m_ServerSocket ) );
+		System.out.println("got done with connect");
 		replyCommand( getSuccessCode() );
 	}	
 	

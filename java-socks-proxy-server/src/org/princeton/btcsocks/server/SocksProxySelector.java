@@ -88,12 +88,13 @@ public class SocksProxySelector extends ProxySelector {
 		appKit.connectToLocalHost();
 		appKit.startAsync();
 		appKit.awaitRunning();
+		System.out.println("appkit state:" + appKit.state());
 		// We now have active network connections and a fully synced wallet.
 		// Add a new key which will be used for the multisig contract.
 		appKit.wallet().importKey(myKey); //TODO fix: i think this makes it generate a new key every time the program is run
 		appKit.wallet().allowSpendingUnconfirmedTransactions();
 
-		System.out.println(appKit.wallet());
+		//System.out.println(appKit.wallet());
 
 		waitForSufficientBalance(channelSize);
 
@@ -131,13 +132,14 @@ public class SocksProxySelector extends ProxySelector {
 		System.out.println("scheme = " + uri.getScheme());
 		System.out.println("host = " + uri.getHost());
 		System.out.println("port = " + uri.getPort());
-
+		System.out.println("appkit state begin select:" + appKit.state());
 		/*
 		 * If it's a http (or https) URL, then we use our own list.
 		 */
 		String protocol = uri.getScheme();
 		if ("socket".equalsIgnoreCase(protocol)) {
 			List<RemoteProxyAddress> test = getActiveProxies();
+			System.out.println("appkit state after got all proxies:" + appKit.state());
 			System.out.println(test);
 			ArrayList<Proxy> l = new ArrayList<Proxy>();
 			assert proxies.size() > 0;
@@ -150,13 +152,18 @@ public class SocksProxySelector extends ProxySelector {
 				i++;
 			}
 
+			System.out.println("appkit state after choose proxy:" + appKit.state());
+
 			final String host = "127.0.0.1";//TODO Fix this-- should be defined based on the address of the proxy
 			final int timeoutSecs = 15;
 			final InetSocketAddress server = new InetSocketAddress(host, 4242);
 
 			log.info("Round one ...");
 			System.out.println("Before Payment:");
-			System.out.println(appKit.wallet());
+
+			System.out.println("appkit state b4:" + appKit.state());
+			//System.out.println(appKit.wallet());
+			System.out.println("appkit state aftr:" + appKit.state());
 			try {
 				openAndSend(timeoutSecs, server, host, 9);
 			} catch (IOException e) {
@@ -166,10 +173,10 @@ public class SocksProxySelector extends ProxySelector {
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
-			log.info(appKit.wallet().toString());
+			//log.info(appKit.wallet().toString());
 			log.info("Stopping ...");
 			System.out.println("After Payment:");
-			System.out.println(appKit.wallet());
+			//System.out.println(appKit.wallet());
 			appKit.stopAsync();
 			appKit.awaitTerminated();
 			return l;
@@ -220,6 +227,7 @@ public class SocksProxySelector extends ProxySelector {
 		}
 	}
 	private void openAndSend(int timeoutSecs, InetSocketAddress server, String channelID, final int times) throws IOException, ValueOutOfRangeException, InterruptedException {
+		System.out.println("appkit state2:" + appKit.state());
 		PaymentChannelClientConnection client = new PaymentChannelClientConnection(
 				server, timeoutSecs, appKit.wallet(), myKey, channelSize.add(Wallet.SendRequest.DEFAULT_FEE_PER_KB), channelID);
 		System.out.println("Putting " + channelSize.add(Wallet.SendRequest.DEFAULT_FEE_PER_KB) + " in channel");
