@@ -1,16 +1,19 @@
 package org.jdamico.socks.server;
 
 
-import java.net.ProxySelector;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.List;
 
 import org.jdamico.socks.server.commons.Constants;
 import org.jdamico.socks.server.impl.ProxyServerInitiator;
-import org.princeton.btcsocks.server.SocksProxySelector;
-
+import org.princeton.btsocks.discovery.BittorrentDiscovery;
+import org.princeton.btsocks.discovery.RemoteProxyAddress;
 
 public class StartServerProxy {
 	
-	public static	boolean	enableDebugLog = true;
+	public	boolean	enableDebugLog = true;
 	public static void main(String[] args) {
 		
 		/*
@@ -18,9 +21,11 @@ public class StartServerProxy {
 		 * listenPort
 		 */
 		
-		int port = Constants.LISTEN_PORT;
+		int port = 0;
 		
 		String noParamsMsg = "Unable to parse command-line parameters, using default configuration.";
+		
+		boolean enableDebugLog = true;
 		
 		if(args.length == 2){
 			try {
@@ -33,7 +38,18 @@ public class StartServerProxy {
 			}
 		}else System.out.println(noParamsMsg);
 		
-		new ProxyServerInitiator(port).start();
+		try {
+			ProxyServerInitiator proxyServerInitiator = new ProxyServerInitiator(port, enableDebugLog);
+			proxyServerInitiator.start();
+			System.out.println("Starting proxy server on port " + port);
+			BittorrentDiscovery discovery = new BittorrentDiscovery(InetAddress.getLocalHost(), 6969);
+			discovery.announceProxy(proxyServerInitiator.getPort());
+			System.out.println("Advertising server on bittorrent");
+		} catch (IOException e) {
+			// TODO Auto-generated catch =block
+			e.printStackTrace();
+		}
+		
 	}
 	
 }

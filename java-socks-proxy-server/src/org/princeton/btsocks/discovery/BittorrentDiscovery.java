@@ -19,8 +19,7 @@ public class BittorrentDiscovery {
     private final Random random;
     
     private static final byte[] ZEROS = new byte[4];
-
-    public static final int CLIENT_PORT = 8956;
+    
     // Randomly generated info hash to announce to trackers.
     public static final byte[] INFO_HASH = new byte[]{103, -40, -42, -30, -1, -49, 122, -4, -67, 61, -36, 111, 66, -31, -82, -82, -91, 109, -32, -19};
     public static final byte[] PEER_ID = new byte[] {42, 50 , -42, -30, -1, -49, 122, -4, -67, 61, -36, 111, 66, -31, -82, -82, -91, 109, -32, -19};
@@ -32,7 +31,7 @@ public class BittorrentDiscovery {
     }
 
     public List<RemoteProxyAddress> getProxies() throws IOException {
-        ConnectResponseValues connectValues = announceRequest(CLIENT_PORT);
+        ConnectResponseValues connectValues = announceRequest(2);
         
         DatagramPacket announceResponsePacket = new DatagramPacket(new byte[1400], 1400);
         connectValues.socket.receive(announceResponsePacket);
@@ -40,7 +39,6 @@ public class BittorrentDiscovery {
         
         ByteBuffer announceResponse = ByteBuffer.wrap(announceResponsePacket.getData());
         announceResponse.order(ByteOrder.BIG_ENDIAN);
-        
         TrackerAction action = TrackerAction.valueOf(announceResponse.getInt());
         if (action != TrackerAction.ANNOUNCE) {
             System.out.println("action != TrackerAction.ANNOUNCE");
@@ -70,9 +68,7 @@ public class BittorrentDiscovery {
             byte[] portBuffer = new byte[2];
             announceResponse.get(portBuffer);
             int port = ((portBuffer[0] & 0xFF) << 8) | (portBuffer[1] & 0xFF);
-            if (port != CLIENT_PORT) {
-            	peers.add(new RemoteProxyAddress(address, port));
-            }
+            peers.add(new RemoteProxyAddress(address, port));
         }
         
         return peers;
@@ -80,6 +76,7 @@ public class BittorrentDiscovery {
     
     public void announceProxy(int port) throws IOException {
         ConnectResponseValues connectValues = announceRequest(port);
+        System.out.println("Announcing server on port " + port);
         connectValues.socket.close();
     }
     
