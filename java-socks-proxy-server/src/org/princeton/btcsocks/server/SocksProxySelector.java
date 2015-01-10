@@ -9,11 +9,14 @@ import org.bitcoinj.protocols.channels.StoredPaymentChannelClientStates;
 import org.bitcoinj.protocols.channels.ValueOutOfRangeException;
 import org.bitcoinj.utils.BriefLogFormatter;
 import org.bitcoinj.utils.Threading;
+
 import com.google.common.collect.ImmutableList;
+import com.google.common.util.concurrent.AbstractIdleService;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.Uninterruptibles;
+
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
@@ -89,6 +92,8 @@ public class SocksProxySelector extends ProxySelector {
 		appKit.startAsync();
 		appKit.awaitRunning();
 		System.out.println("appkit state:" + appKit.state());
+		AbstractIdleService test;
+//		assert appKit.state() == AbstractIdleService.Service.State;
 		// We now have active network connections and a fully synced wallet.
 		// Add a new key which will be used for the multisig contract.
 		appKit.wallet().importKey(myKey); //TODO fix: i think this makes it generate a new key every time the program is run
@@ -165,7 +170,7 @@ public class SocksProxySelector extends ProxySelector {
 			//System.out.println(appKit.wallet());
 			System.out.println("appkit state aftr:" + appKit.state());
 			try {
-				openAndSend(timeoutSecs, server, host, 9);
+				openAndSend(timeoutSecs, server, host, 1);
 			} catch (IOException e) {
 				e.printStackTrace();
 			} catch (ValueOutOfRangeException e) {
@@ -177,8 +182,8 @@ public class SocksProxySelector extends ProxySelector {
 			log.info("Stopping ...");
 			System.out.println("After Payment:");
 			//System.out.println(appKit.wallet());
-			appKit.stopAsync();
-			appKit.awaitTerminated();
+//			appKit.stopAsync();
+//			appKit.awaitTerminated();
 			return l;
 		}
 
