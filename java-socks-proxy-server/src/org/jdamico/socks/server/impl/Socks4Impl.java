@@ -196,6 +196,7 @@ public class Socks4Impl implements SocksCommonInterface {
 			m_Parent.connectToServer( m_ServerIP.getHostAddress(), m_nServerPort );
 		}
 		catch( IOException e )	{
+			System.out.println("m_Parent.m_ServerSocket = " + m_Parent.m_ServerSocket);
 			refuseCommand( getFailCode() ); // Connection Refused
 			throw new Exception("Socks 4 - Can't connect to " +
 			m_Parent.m_debugLog.getSocketInfo( m_Parent.m_ServerSocket ) );

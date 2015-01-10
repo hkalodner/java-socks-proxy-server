@@ -91,10 +91,11 @@ public class ExamplePaymentChannelServer implements PaymentChannelServerListener
 
                 // Try to get the state object from the stored state set in our wallet
                 System.out.println("here1");
+                StoredPaymentChannelServerStates savedState = (StoredPaymentChannelServerStates) appKit.wallet().getExtensions().get(StoredPaymentChannelServerStates.class.getName());
                 PaymentChannelServerState state = null;
                 try {
                     System.out.println("here2");
-                    state = storedStates.getChannel(channelId).getOrCreateState(appKit.wallet(), appKit.peerGroup());
+                    state = savedState.getChannel(channelId).getOrCreateState(appKit.wallet(), appKit.peerGroup());
                 } catch (VerificationException e) {
                     // This indicates corrupted data, and since the channel was just opened, cannot happen
                     System.out.println("was an error opening channel");
