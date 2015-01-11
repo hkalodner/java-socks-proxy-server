@@ -188,15 +188,15 @@ public class Socks4Impl implements SocksCommonInterface {
 	/////////////////////////////////////////////////////////////
 
 	public void	connect() throws Exception {
-
+		long threadID = Thread.currentThread().getId();
 		m_Parent.m_debugLog.println( "Connecting..." );
 	//	Connect to the Remote Host
-		System.out.println("m_ServerIP " + m_ServerIP.getHostAddress() + " and m_nServerPort " + m_nServerPort);
+		System.out.println("thread " + threadID + " m_ServerIP " + m_ServerIP.getHostAddress() + " and m_nServerPort " + m_nServerPort);
 		try	{
 			m_Parent.connectToServer( m_ServerIP.getHostAddress(), m_nServerPort );
 		}
 		catch( IOException e )	{
-			System.out.println("m_Parent.m_ServerSocket = " + m_Parent.m_ServerSocket);
+			System.out.println(threadID + " m_Parent.m_ServerSocket = " + m_Parent.m_ServerSocket);
 			refuseCommand( getFailCode() ); // Connection Refused
 			throw new Exception("Socks 4 - Can't connect to " +
 			m_Parent.m_debugLog.getSocketInfo( m_Parent.m_ServerSocket ) );

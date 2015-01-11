@@ -8,11 +8,8 @@ import org.bitcoinj.protocols.channels.PaymentChannelClientConnection;
 import org.bitcoinj.protocols.channels.StoredPaymentChannelClientStates;
 import org.bitcoinj.protocols.channels.ValueOutOfRangeException;
 import org.bitcoinj.utils.BriefLogFormatter;
-import org.bitcoinj.utils.Threading;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.util.concurrent.AbstractIdleService;
-import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.Uninterruptibles;
@@ -23,7 +20,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 
 import static org.bitcoinj.core.Coin.CENT;
@@ -249,64 +245,6 @@ public class SocksProxySelector extends ProxySelector {
 		}
 	}
 	
-	private void openAndSend(int timeoutSecs, InetSocketAddress server, String channelID, final int times) throws IOException, ValueOutOfRangeException, InterruptedException {
-		System.out.println("appkit state2:" + appKit.state());
-		PaymentChannelClientConnection client = new PaymentChannelClientConnection(
-				server, timeoutSecs, appKit.wallet(), myKey, channelSize.add(Wallet.SendRequest.DEFAULT_FEE_PER_KB), channelID);
-		System.out.println("Putting " + channelSize.add(Wallet.SendRequest.DEFAULT_FEE_PER_KB) + " in channel");
-		// Opening the channel requires talking to the server, so it's asynchronous.
-		final CountDownLatch latch = new CountDownLatch(1);
-		Futures.addCallback(client.getChannelOpenFuture(), new FutureCallback<PaymentChannelClientConnection>() {
-			@Override
-			public void onSuccess(PaymentChannelClientConnection client) {
-				// By the time we get here, if the channel is new then we already made a micropayment! The reason is,
-				// we are not allowed to have payment channels that pay nothing at all.
-				log.info("Success! Trying to make {} micropayments. Already paid {} satoshis on this channel",
-						times, client.state().getValueSpent());
-				final Coin MICROPAYMENT_SIZE = CENT.divide(10);
-				for (int i = 0; i < times; i++) {
-					System.out.println("round:"+ i+ " of transactions");
-					try {
-						// Wait because the act of making a micropayment is async, and we're not allowed to overlap.
-						// This callback is running on the user thread (see the last lines in openAndSend) so it's safe
-						// for us to block here: if we didn't select the right thread, we'd end up blocking the payment
-						// channels thread and would deadlock.
-						Uninterruptibles.getUninterruptibly(client.incrementPayment(MICROPAYMENT_SIZE));
-					} catch (ValueOutOfRangeException e) {
-						log.error("Failed to increment payment by a CENT, remaining value is {}", client.state().getValueRefunded());
-						throw new RuntimeException(e);
-					} catch (ExecutionException e) {
-						log.error("Failed to increment payment", e);
-						throw new RuntimeException(e);
-					}
-					log.info("Successfully sent payment of one CENT, total remaining on channel is now {}", client.state().getValueRefunded());
-				}
-				// if (client.state().getValueRefunded().compareTo(MICROPAYMENT_SIZE) < 0) {
-				if (true) {
-					// Now tell the server we're done so they should broadcast the final transaction and refund us what's
-					// left. If we never do this then eventually the server will time out and do it anyway and if the
-					// server goes away for longer, then eventually WE will time out and the refund tx will get broadcast
-					// by ourselves.
-					System.out.println("settling channel and closing");
-					log.info("Settling channel for good");
-					client.settle();
-				} else {
-					// Just unplug from the server but leave the channel open so it can resume later.
-					System.out.println("close w/o settling. Not clean");
-					client.disconnectWithoutSettlement();
-				}
-				latch.countDown();
-			}
-
-			@Override
-			public void onFailure(Throwable throwable) {
-				log.error("Failed to open connection", throwable);
-				latch.countDown();
-			}
-		}, Threading.USER_THREAD);
-		latch.await();
-	}
-
 	private void waitForSufficientBalance(Coin amount) {
 		// Not enough money in the wallet.
 		Coin amountPlusFee = amount.add(Wallet.SendRequest.DEFAULT_FEE_PER_KB);
