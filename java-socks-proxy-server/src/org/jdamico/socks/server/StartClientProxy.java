@@ -36,7 +36,7 @@ public class StartClientProxy {
 			}
 		}	else System.out.println(noParamsMsg);
 		System.out.println("Starting proxy client on port " + port);
-		new ProxyServerInitiator(port, enableDebugLog).start();
+		new ProxyServerInitiator(port, enableDebugLog, false).start();
 	}
 	
 }

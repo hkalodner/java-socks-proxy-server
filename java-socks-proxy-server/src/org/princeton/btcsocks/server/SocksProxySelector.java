@@ -99,6 +99,23 @@ public class SocksProxySelector extends ProxySelector {
 		waitForSufficientBalance(channelSize);
 
 		for (RemoteProxyAddress proxyAddress : proxyList) {
+			Proxy proxy = new Proxy(Proxy.Type.SOCKS, proxyAddress.address());
+			Socket socket = new Socket(proxy);
+			try {
+				System.out.println("Testing out proxy " + proxyAddress.address());
+				InetSocketAddress final_addr = new InetSocketAddress("74.125.236.195", 80);
+				socket.connect(final_addr);
+			} catch (IOException e1) {
+				System.out.println("Proxy failed");
+				continue;
+			} finally {
+				try {
+					socket.close();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
 			if (proxyAddress.paymentChannel() == null) {
 				try {
 					proxyAddress.setPaymentChannel(openPaymentChannel(timeoutSecs, server, host));
@@ -229,6 +246,7 @@ public class SocksProxySelector extends ProxySelector {
 	}
 	
 	private void sendPayment(PaymentChannelClientConnection client) {
+		System.out.println("Sending payment to server");
 		final Coin MICROPAYMENT_SIZE = CENT.divide(10);
 		try {
 			// Wait because the act of making a micropayment is async, and we're not allowed to overlap.
