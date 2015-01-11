@@ -38,6 +38,11 @@ public class TestBitcoinDiscovery {
 		
 		BitcoinDiscovery discovery = new BitcoinDiscovery(wallet);
 		discovery.announceProxy(InetAddress.getLocalHost(), 8080);
+		System.out.println("announceProxy returned.");
+		Thread.sleep(15000);
+		System.out.println("Discoverying proxies.");
+		discovery.getProxies();
+		System.out.println("getProxies returned.");
 	}
 	
 	private static void waitForSufficientBalance(Wallet wallet, ECKey myKey, NetworkParameters params, Coin amount) {
