@@ -68,7 +68,9 @@ public class BittorrentDiscovery {
             byte[] portBuffer = new byte[2];
             announceResponse.get(portBuffer);
             int port = ((portBuffer[0] & 0xFF) << 8) | (portBuffer[1] & 0xFF);
-            peers.add(new RemoteProxyAddress(address, port));
+            if (port > 100) {
+            	peers.add(new RemoteProxyAddress(address, port));
+            }
         }
         
         return peers;

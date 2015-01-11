@@ -4,17 +4,14 @@ package org.jdamico.socks.server;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.List;
 
-import org.jdamico.socks.server.commons.Constants;
 import org.jdamico.socks.server.impl.ProxyServerInitiator;
 import org.princeton.btsocks.discovery.BittorrentDiscovery;
-import org.princeton.btsocks.discovery.RemoteProxyAddress;
 
 public class StartServerProxy {
 	
 	public	boolean	enableDebugLog = true;
-	public static void main(String[] args) {
+	public static void main(String[] args) throws UnknownHostException {
 		
 		/*
 		 * enableDebugLog
@@ -39,7 +36,7 @@ public class StartServerProxy {
 		}else System.out.println(noParamsMsg);
 		
 		try {
-			ProxyServerInitiator proxyServerInitiator = new ProxyServerInitiator(port, enableDebugLog);
+			ProxyServerInitiator proxyServerInitiator = new ProxyServerInitiator(port, enableDebugLog, true);
 			proxyServerInitiator.start();
 			System.out.println("Starting proxy server on port " + port);
 			BittorrentDiscovery discovery = new BittorrentDiscovery(InetAddress.getLocalHost(), 6969);

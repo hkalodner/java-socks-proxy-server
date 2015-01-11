@@ -44,7 +44,6 @@ import static org.bitcoinj.core.Coin.COIN;
 public class ExamplePaymentChannelServer implements PaymentChannelServerListener.HandlerFactory {
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(ExamplePaymentChannelServer.class);
 
-    private StoredPaymentChannelServerStates storedStates;
     private WalletAppKit appKit;
 
     public static void main(String[] args) throws Exception {

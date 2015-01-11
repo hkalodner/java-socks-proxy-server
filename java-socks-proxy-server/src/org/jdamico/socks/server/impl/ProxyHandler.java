@@ -11,6 +11,7 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.util.concurrent.Semaphore;
 
 import org.jdamico.socks.server.commons.Constants;
 import org.jdamico.socks.server.commons.DebugLog;
@@ -36,10 +37,13 @@ public class ProxyHandler	implements	Runnable
 	
 	public DebugLog m_debugLog;
 	
-	public	ProxyHandler(Socket clientSocket, DebugLog debugLog) {	
+	private Semaphore m_PaymentCount;
+	
+	public	ProxyHandler(Socket clientSocket, DebugLog debugLog, Semaphore paymentCount) {	
 		m_lock = this;
 		m_ClientSocket = clientSocket;
 		m_debugLog = debugLog;
+		m_PaymentCount = paymentCount;
 		if( m_ClientSocket != null )	{
 			try	{
 				m_ClientSocket.setSoTimeout( Constants.DEFAULT_PROXY_TIMEOUT );
@@ -84,6 +88,16 @@ public class ProxyHandler	implements	Runnable
 	 
 	public	void	run()
 	{
+		if (m_PaymentCount != null) {
+			System.out.println("Handler trying to aquire permit with current count " + m_PaymentCount.availablePermits());
+			try {
+				m_PaymentCount.acquire();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
 		setLock( this );
 		
 		if( !prepareClient() )	{
@@ -176,7 +190,7 @@ public class ProxyHandler	implements	Runnable
 	}
 	
 	
-	public	void connectToServer( String server, int port ) throws IOException, UnknownHostException {
+	public	void connectToServer( String server, int port ) throws IOException, UnknownHostException, InterruptedException {
 		long threadID = Thread.currentThread().getId();
 		System.out.println("In connectToServer " + threadID + " " + server + ", " + port);
 		if( server.equals("") )	{
@@ -275,7 +289,7 @@ public class ProxyHandler	implements	Runnable
 		throw	new Exception( "Interrupted Reading GetByteFromClient()");
 	} // GetByteFromClient()...
 	
-	public	void relay()	{
+	public	void relay() throws InterruptedException	{
 	
 		boolean	isActive = true;
 		int		dlen = 0;
@@ -305,8 +319,6 @@ public class ProxyHandler	implements	Runnable
 			Thread.yield();
 		}	// while
 	}
-	
-	
 
 	public	int	 checkClientData()	{
 		synchronized( m_lock )
@@ -385,6 +397,5 @@ public class ProxyHandler	implements	Runnable
 	public Socket getSocksServer() {
 		return m_ServerSocket;
 	}
-	
 	
 }
