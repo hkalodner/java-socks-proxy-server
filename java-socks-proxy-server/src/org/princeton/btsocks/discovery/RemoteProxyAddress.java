@@ -5,10 +5,13 @@ import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.net.SocketAddress;
 
+import org.bitcoinj.protocols.channels.PaymentChannelClientConnection;
+
 public class RemoteProxyAddress {
 	
 	private final SocketAddress address;
 	private final Proxy proxy;
+	private PaymentChannelClientConnection paymentChannel = null;
 	// How many times did we fail to reach this proxy?
 	private int failedCount = 0;
 	
@@ -23,6 +26,14 @@ public class RemoteProxyAddress {
 
 	public Proxy toProxy() {
 		return proxy;
+	}
+	
+	public PaymentChannelClientConnection paymentChannel() {
+		return paymentChannel;
+	}
+	
+	public void setPaymentChannel(PaymentChannelClientConnection paymentChannel) {
+		this.paymentChannel = paymentChannel;
 	}
 
 	public int failed() {
