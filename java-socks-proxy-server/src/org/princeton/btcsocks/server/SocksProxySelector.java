@@ -65,10 +65,10 @@ public class SocksProxySelector extends ProxySelector {
 		// Populate the HashMap (List of proxies)
 		List<RemoteProxyAddress> proxyList = getActiveProxies();
 		System.out.println("Active Proxy List:\n" + proxyList);
-		for (RemoteProxyAddress proxyAddress : proxyList) {
-			proxies.put(proxyAddress.address(), proxyAddress);
-			System.out.println(proxyAddress);
-		}
+		
+		final String host = "127.0.0.1";//TODO Fix this-- should be defined based on the address of the proxy
+		final int timeoutSecs = 15;
+		final InetSocketAddress server = new InetSocketAddress(host, 4242);
 
 
 		BriefLogFormatter.init();
@@ -92,7 +92,6 @@ public class SocksProxySelector extends ProxySelector {
 		appKit.startAsync();
 		appKit.awaitRunning();
 		System.out.println("appkit state:" + appKit.state());
-		AbstractIdleService test;
 //		assert appKit.state() == AbstractIdleService.Service.State;
 		// We now have active network connections and a fully synced wallet.
 		// Add a new key which will be used for the multisig contract.
@@ -103,13 +102,31 @@ public class SocksProxySelector extends ProxySelector {
 
 		waitForSufficientBalance(channelSize);
 
+		for (RemoteProxyAddress proxyAddress : proxyList) {
+			if (proxyAddress.paymentChannel() == null) {
+				try {
+					proxyAddress.setPaymentChannel(openPaymentChannel(timeoutSecs, server, host));
+				} catch (IOException e) {
+					e.printStackTrace();
+				} catch (ValueOutOfRangeException e) {
+					e.printStackTrace();
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				} catch (ExecutionException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			proxies.put(proxyAddress.address(), proxyAddress);
+			System.out.println("Set up proxy: " + proxyAddress);
+		}
 	}
 	
 	public List<RemoteProxyAddress> getActiveProxies() {
 		try {
 			BittorrentDiscovery discovery = new BittorrentDiscovery(InetAddress.getLocalHost(), 6969);
 			List<RemoteProxyAddress> proxyList = discovery.getProxies();
-			System.out.println(proxyList);
+			System.out.println("proxyList = " + proxyList);
 			return proxyList;
 		} catch (UnknownHostException e) {
 			// TODO Auto-generated catch block
@@ -138,14 +155,13 @@ public class SocksProxySelector extends ProxySelector {
 		System.out.println("host = " + uri.getHost());
 		System.out.println("port = " + uri.getPort());
 		System.out.println("appkit state begin select:" + appKit.state());
+		
 		/*
 		 * If it's a http (or https) URL, then we use our own list.
 		 */
 		String protocol = uri.getScheme();
 		if ("socket".equalsIgnoreCase(protocol)) {
-			List<RemoteProxyAddress> test = getActiveProxies();
 			System.out.println("appkit state after got all proxies:" + appKit.state());
-			System.out.println(test);
 			ArrayList<Proxy> l = new ArrayList<Proxy>();
 			assert proxies.size() > 0;
 			int proxNum = requestNum % proxies.size();
@@ -153,37 +169,11 @@ public class SocksProxySelector extends ProxySelector {
 			for (RemoteProxyAddress p : proxies.values()) {
 				if (i == proxNum) {
 					l.add(p.toProxy());
+					sendPayment(p.paymentChannel());
 				}
 				i++;
 			}
 
-			System.out.println("appkit state after choose proxy:" + appKit.state());
-
-			final String host = "127.0.0.1";//TODO Fix this-- should be defined based on the address of the proxy
-			final int timeoutSecs = 15;
-			final InetSocketAddress server = new InetSocketAddress(host, 4242);
-
-			log.info("Round one ...");
-			System.out.println("Before Payment:");
-
-			System.out.println("appkit state b4:" + appKit.state());
-			//System.out.println(appKit.wallet());
-			System.out.println("appkit state aftr:" + appKit.state());
-			try {
-				openAndSend(timeoutSecs, server, host, 1);
-			} catch (IOException e) {
-				e.printStackTrace();
-			} catch (ValueOutOfRangeException e) {
-				e.printStackTrace();
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-			//log.info(appKit.wallet().toString());
-			log.info("Stopping ...");
-			System.out.println("After Payment:");
-			//System.out.println(appKit.wallet());
-//			appKit.stopAsync();
-//			appKit.awaitTerminated();
 			return l;
 		}
 
@@ -231,6 +221,34 @@ public class SocksProxySelector extends ProxySelector {
 				defsel.connectFailed(uri, sa, ioe);
 		}
 	}
+	
+	private PaymentChannelClientConnection openPaymentChannel(int timeoutSecs, InetSocketAddress server, String channelID) throws InterruptedException, IOException, ValueOutOfRangeException, ExecutionException {
+		System.out.println("appkit state2:" + appKit.state());
+		PaymentChannelClientConnection client = new PaymentChannelClientConnection(
+				server, timeoutSecs, appKit.wallet(), myKey, channelSize.add(Wallet.SendRequest.DEFAULT_FEE_PER_KB), channelID);
+		System.out.println("Putting " + channelSize.add(Wallet.SendRequest.DEFAULT_FEE_PER_KB) + " in channel");
+		// Opening the channel requires talking to the server, so it's asynchronous.
+
+		return client.getChannelOpenFuture().get();
+	}
+	
+	private void sendPayment(PaymentChannelClientConnection client) {
+		final Coin MICROPAYMENT_SIZE = CENT.divide(10);
+		try {
+			// Wait because the act of making a micropayment is async, and we're not allowed to overlap.
+			// This callback is running on the user thread (see the last lines in openAndSend) so it's safe
+			// for us to block here: if we didn't select the right thread, we'd end up blocking the payment
+			// channels thread and would deadlock.
+			Uninterruptibles.getUninterruptibly(client.incrementPayment(MICROPAYMENT_SIZE));
+		} catch (ValueOutOfRangeException e) {
+			log.error("Failed to increment payment by a CENT, remaining value is {}", client.state().getValueRefunded());
+			throw new RuntimeException(e);
+		} catch (ExecutionException e) {
+			log.error("Failed to increment payment", e);
+			throw new RuntimeException(e);
+		}
+	}
+	
 	private void openAndSend(int timeoutSecs, InetSocketAddress server, String channelID, final int times) throws IOException, ValueOutOfRangeException, InterruptedException {
 		System.out.println("appkit state2:" + appKit.state());
 		PaymentChannelClientConnection client = new PaymentChannelClientConnection(
