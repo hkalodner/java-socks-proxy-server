@@ -1,6 +1,7 @@
 package org.princeton.btsocks.discovery;
 
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -67,7 +68,12 @@ public class BitcoinDiscovery {
         ByteBuffer buffer = ByteBuffer.allocate(ADVERTISMENT_BUFFER_LENGTH);
         buffer.put(MAGIC_NUMBER);
         buffer.put(address.getAddress());
-        buffer.putInt(port);
+        
+        byte[] portBuffer = new byte[2];
+        portBuffer[0] = (byte)((port >> 8) & 0xFF);
+        portBuffer[1] = (byte)(port & 0xFF);
+        buffer.put(portBuffer);
+        
         return buffer.array();
     }
     
@@ -101,7 +107,7 @@ public class BitcoinDiscovery {
             i += 1;
             Sha256Hash prevBlockHash = block.getPrevBlockHash();
             block = peer.getBlock(prevBlockHash).get();
-        } while (block != null && i < 6);
+        } while (block != null && i < 20);
         
         return proxies;
     }
@@ -110,7 +116,6 @@ public class BitcoinDiscovery {
         List<RemoteProxyAddress> proxies = new ArrayList<RemoteProxyAddress>();
         List<Transaction> transactions = block.getTransactions();
         
-        System.out.println("Scanning " + transactions.size() + " transactions.");
         for (Transaction transaction : transactions) {
             for(TransactionOutput output : transaction.getOutputs()) {
                 Script script = output.getScriptPubKey();
@@ -120,7 +125,20 @@ public class BitcoinDiscovery {
                 if (chunk1.isOpCode() && chunk1.opcode == ScriptOpCodes.OP_RETURN) {
                     byte[] prefix = Arrays.copyOf(chunk2.data, MAGIC_NUMBER.length);
                     if (Arrays.equals(prefix, MAGIC_NUMBER)) {
-                        System.out.println("Found announcement.");
+                        ByteBuffer announceBuffer = ByteBuffer.wrap(chunk2.data, MAGIC_NUMBER.length,
+                                                                    chunk2.data.length - MAGIC_NUMBER.length);
+                        byte[] addressBuffer = new byte[4];
+                        announceBuffer.get(addressBuffer);
+                        InetAddress address;
+                        try {
+                            address = InetAddress.getByAddress(addressBuffer);
+                        } catch (UnknownHostException e) {
+                            continue;
+                        }
+                        byte[] portBuffer = new byte[2];
+                        announceBuffer.get(portBuffer);
+                        int port = ((portBuffer[0] & 0xFF) << 8) | (portBuffer[1] & 0xFF);
+                        proxies.add(new RemoteProxyAddress(address, port));
                     }
                 }
             }

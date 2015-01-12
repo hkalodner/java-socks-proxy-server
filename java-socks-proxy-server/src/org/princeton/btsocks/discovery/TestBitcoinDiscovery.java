@@ -46,20 +46,19 @@ public class TestBitcoinDiscovery {
 	        
 		ECKey myKey = new ECKey();
 		appKit.wallet().importKey(myKey);
-		// waitForSufficientBalance(wallet, myKey, networkParams, Coin.valueOf(10, 0));
-		
-		System.out.println("Money received.");
+//		waitForSufficientBalance(appKit.wallet(), myKey, appKit.params(), Coin.valueOf(10, 0));
+//		System.out.println("Money received.");
 		
 		BitcoinDiscovery discovery = new BitcoinDiscovery(appKit);
-		Thread.sleep(5000);
-		discovery.getProxies();
-		System.out.println("testGetProxies returned");
 //		discovery.announceProxy(InetAddress.getLocalHost(), 8080);
-//		System.out.println("announceProxy returned.");
-//		Thread.sleep(15000);
-//		System.out.println("Discoverying proxies.");
-//		discovery.getProxies();
-//		System.out.println("getProxies returned.");
+//		Thread.sleep(20000);
+		
+		List<RemoteProxyAddress> addresses = discovery.getProxies(); 
+		System.out.println("getProxies returned " + addresses.size() + " proxies.");
+
+		
+		appKit.stop();
+		appKit.awaitTerminated();
 	}
 	
 	private static void waitForSufficientBalance(Wallet wallet, ECKey myKey, NetworkParameters params, Coin amount) {
