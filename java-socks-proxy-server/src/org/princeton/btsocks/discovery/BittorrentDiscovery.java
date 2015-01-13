@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.net.SocketException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
@@ -12,7 +11,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
-public class BittorrentDiscovery {
+public class BittorrentDiscovery implements Discovery {
 
     private InetAddress trackerAddress;
     private final int trackerPort;
@@ -30,53 +29,57 @@ public class BittorrentDiscovery {
         random = new Random();
     }
 
-    public List<RemoteProxyAddress> getProxies() throws IOException {
-        ConnectResponseValues connectValues = announceRequest(2);
-        
-        DatagramPacket announceResponsePacket = new DatagramPacket(new byte[1400], 1400);
-        connectValues.socket.receive(announceResponsePacket);
-        connectValues.socket.close();
-        
-        ByteBuffer announceResponse = ByteBuffer.wrap(announceResponsePacket.getData());
-        announceResponse.order(ByteOrder.BIG_ENDIAN);
-        TrackerAction action = TrackerAction.valueOf(announceResponse.getInt());
-        if (action != TrackerAction.ANNOUNCE) {
-            System.out.println("action != TrackerAction.ANNOUNCE");
-            return null;
-        }
-        int responseTransactionId = announceResponse.getInt();
-        if (responseTransactionId != connectValues.transactionId) {
-            System.out.println("responseTransactionId != connectValues.transactionId");
-            return null;
-        }
-        // TODO: actually wait the interval amount of time;
-        int interval = announceResponse.getInt();
-        int leechers = announceResponse.getInt();
-        int seeders = announceResponse.getInt();
-        List<RemoteProxyAddress> peers = new ArrayList<RemoteProxyAddress>();
-        
-        System.out.println("Enumerating peers.");
-        while (announceResponse.hasRemaining()) {
-            byte[] addressBuffer = new byte[4];
-            announceResponse.get(addressBuffer);
-            if (Arrays.equals(addressBuffer, ZEROS)) {
-                // If the address is all zeros, then we know we have read beyond the list of peers.
-                break;
-            }
-            InetAddress address = InetAddress.getByAddress(addressBuffer);
-            
-            byte[] portBuffer = new byte[2];
-            announceResponse.get(portBuffer);
-            int port = ((portBuffer[0] & 0xFF) << 8) | (portBuffer[1] & 0xFF);
-            if (port > 100) {
-            	peers.add(new RemoteProxyAddress(address, port));
-            }
-        }
-        
+    public List<RemoteProxyAddress> getProxies() {
+    	List<RemoteProxyAddress> peers = new ArrayList<RemoteProxyAddress>();
+		try {
+			ConnectResponseValues connectValues = announceRequest(2);
+			DatagramPacket announceResponsePacket = new DatagramPacket(new byte[1400], 1400);
+	        connectValues.socket.receive(announceResponsePacket);
+	        connectValues.socket.close();
+	        
+	        ByteBuffer announceResponse = ByteBuffer.wrap(announceResponsePacket.getData());
+	        announceResponse.order(ByteOrder.BIG_ENDIAN);
+	        TrackerAction action = TrackerAction.valueOf(announceResponse.getInt());
+	        if (action != TrackerAction.ANNOUNCE) {
+	            System.out.println("action != TrackerAction.ANNOUNCE");
+	            return null;
+	        }
+	        int responseTransactionId = announceResponse.getInt();
+	        if (responseTransactionId != connectValues.transactionId) {
+	            System.out.println("responseTransactionId != connectValues.transactionId");
+	            return null;
+	        }
+	        // TODO: actually wait the interval amount of time;
+	        int interval = announceResponse.getInt();
+	        int leechers = announceResponse.getInt();
+	        int seeders = announceResponse.getInt();
+	        System.out.println("Enumerating peers.");
+	        while (announceResponse.hasRemaining()) {
+	            byte[] addressBuffer = new byte[4];
+	            announceResponse.get(addressBuffer);
+	            if (Arrays.equals(addressBuffer, ZEROS)) {
+	                // If the address is all zeros, then we know we have read beyond the list of peers.
+	                break;
+	            }
+	            InetAddress address = InetAddress.getByAddress(addressBuffer);
+	            
+	            byte[] portBuffer = new byte[2];
+	            announceResponse.get(portBuffer);
+	            int port = ((portBuffer[0] & 0xFF) << 8) | (portBuffer[1] & 0xFF);
+	            if (port > 100) {
+	            	peers.add(new RemoteProxyAddress(address, port));
+	            }
+	        }
+	        
+	        
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
         return peers;
     }
     
-    public void announceProxy(int port) throws IOException {
+    public void announceProxy(InetAddress address, int port) throws Exception {
         ConnectResponseValues connectValues = announceRequest(port);
         System.out.println("Announcing server on port " + port);
         connectValues.socket.close();

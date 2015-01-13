@@ -7,6 +7,7 @@ import org.bitcoinj.params.RegTestParams;
 import org.bitcoinj.protocols.channels.PaymentChannelClientConnection;
 import org.bitcoinj.protocols.channels.StoredPaymentChannelClientStates;
 import org.bitcoinj.protocols.channels.ValueOutOfRangeException;
+import org.bitcoinj.store.BlockStoreException;
 import org.bitcoinj.utils.BriefLogFormatter;
 
 import com.google.common.collect.ImmutableList;
@@ -30,7 +31,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.princeton.btsocks.discovery.BitcoinDiscovery;
 import org.princeton.btsocks.discovery.BittorrentDiscovery;
+import org.princeton.btsocks.discovery.Discovery;
 import org.princeton.btsocks.discovery.RemoteProxyAddress;
 
 // Taken from https://docs.oracle.com/javase/8/docs/technotes/guides/net/proxies.html
@@ -42,6 +45,7 @@ public class SocksProxySelector extends ProxySelector {
 	private final Coin channelSize;
 	private final ECKey myKey;
 	private final NetworkParameters params;
+	private final Discovery discovery;
 
 
 	// Keep a reference on the previous default
@@ -53,14 +57,10 @@ public class SocksProxySelector extends ProxySelector {
 	 */
 	Map<SocketAddress, RemoteProxyAddress> proxies = new HashMap<SocketAddress, RemoteProxyAddress>();
 
-	public SocksProxySelector(ProxySelector def) {
+	public SocksProxySelector(ProxySelector def, Discovery discovery) {
 		System.out.println("Running constructor");
 		// Save the previous default
 		defsel = def;
-
-		// Populate the HashMap (List of proxies)
-		List<RemoteProxyAddress> proxyList = getActiveProxies();
-		System.out.println("Active Proxy List:\n" + proxyList);
 		
 		final String host = "127.0.0.1";//TODO Fix this-- should be defined based on the address of the proxy
 		final int timeoutSecs = 15;
@@ -71,6 +71,7 @@ public class SocksProxySelector extends ProxySelector {
 		channelSize = COIN;
 		myKey = new ECKey();
 		params = RegTestParams.get();
+		this.discovery = discovery;
 
 		appKit = new WalletAppKit(params, new File("."), "payment_channel_example_client") {
 			@Override
@@ -97,6 +98,10 @@ public class SocksProxySelector extends ProxySelector {
 		//System.out.println(appKit.wallet());
 
 		waitForSufficientBalance(channelSize);
+		
+		// Populate the HashMap (List of proxies)
+		List<RemoteProxyAddress> proxyList = getActiveProxies();
+		System.out.println("Active Proxy List:\n" + proxyList);
 
 		for (RemoteProxyAddress proxyAddress : proxyList) {
 			Proxy proxy = new Proxy(Proxy.Type.SOCKS, proxyAddress.address());
@@ -136,19 +141,9 @@ public class SocksProxySelector extends ProxySelector {
 	}
 	
 	public List<RemoteProxyAddress> getActiveProxies() {
-		try {
-			BittorrentDiscovery discovery = new BittorrentDiscovery(InetAddress.getLocalHost(), 6969);
-			List<RemoteProxyAddress> proxyList = discovery.getProxies();
-			System.out.println("proxyList = " + proxyList);
-			return proxyList;
-		} catch (UnknownHostException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return null;
+		List<RemoteProxyAddress> proxyList = discovery.getProxies();
+		System.out.println("proxyList = " + proxyList);
+		return proxyList;
 	}
 
 	/*

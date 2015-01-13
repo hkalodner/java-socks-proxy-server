@@ -31,8 +31,11 @@ import org.bitcoinj.protocols.channels.PaymentChannelCloseException.CloseReason;
 import org.bitcoinj.protocols.channels.PaymentChannelServerListener.HandlerFactory;
 import org.bitcoinj.protocols.channels.ServerConnectionEventHandler;
 import org.bitcoinj.protocols.channels.StoredPaymentChannelServerStates;
+import org.princeton.btsocks.discovery.Discovery;
 import org.jdamico.socks.server.commons.Constants;
 import org.jdamico.socks.server.commons.DebugLog;
+import org.princeton.btsocks.discovery.BitcoinDiscovery;
+import org.princeton.btsocks.discovery.BittorrentDiscovery;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -93,10 +96,15 @@ public class ProxyServerInitiator	implements	Runnable, HandlerFactory
 	        };
 	        appKit.connectToLocalHost();
 	        appKit.startAsync();
-	        appKit.awaitRunning();
-			
+	        appKit.awaitRunning();        
 	        
 	        try {
+	        	System.out.println("Announcing on port " + getPort());
+//	        	Discovery discovery = new BitcoinDiscovery(appKit);
+	        	Discovery discovery = new BittorrentDiscovery(InetAddress.getLocalHost(), 6969);
+		        discovery.announceProxy(InetAddress.getLocalHost(), getPort());
+				System.out.println("Advertising server on bittorrent");
+	        	
 	        	System.out.println("Starting payment server");
 	        	final PaymentChannelServerListener server = new PaymentChannelServerListener(appKit.peerGroup(), appKit.wallet(), 15, COIN, this);
 				server.bindAndStart(4242);

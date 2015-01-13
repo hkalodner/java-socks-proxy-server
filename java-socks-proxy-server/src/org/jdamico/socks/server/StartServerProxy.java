@@ -11,7 +11,7 @@ import org.princeton.btsocks.discovery.BittorrentDiscovery;
 public class StartServerProxy {
 	
 	public	boolean	enableDebugLog = true;
-	public static void main(String[] args) throws UnknownHostException {
+	public static void main(String[] args) throws Exception {
 		
 		/*
 		 * enableDebugLog
@@ -35,17 +35,9 @@ public class StartServerProxy {
 			}
 		}else System.out.println(noParamsMsg);
 		
-		try {
-			ProxyServerInitiator proxyServerInitiator = new ProxyServerInitiator(port, enableDebugLog, true);
-			proxyServerInitiator.start();
-			System.out.println("Starting proxy server on port " + port);
-			BittorrentDiscovery discovery = new BittorrentDiscovery(InetAddress.getLocalHost(), 6969);
-			discovery.announceProxy(proxyServerInitiator.getPort());
-			System.out.println("Advertising server on bittorrent");
-		} catch (IOException e) {
-			// TODO Auto-generated catch =block
-			e.printStackTrace();
-		}
+		ProxyServerInitiator proxyServerInitiator = new ProxyServerInitiator(port, enableDebugLog, true);
+		proxyServerInitiator.start();
+		System.out.println("Starting proxy server on port " + port);
 		
 	}
 	
