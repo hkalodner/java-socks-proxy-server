@@ -18,7 +18,3 @@ Next we incorporated the Bitcoin part of the system. The BitcoinJ library includ
 Finally we had to implement the discovery methods by which clients can discover servers. We wanted this interface to be very versatile so that multiple discover methods could be available in different circumstances. We implemented a very simple UDP BitTorrent client with two functions. It could advertise a peer and request a list of peers. This was used to advertise proxy servers and to list available proxy servers.
 
 Our other discovery service was based around the Bitcoin block chain. Servers periodically issue OP\_RETURN transactions which contain a special data structure with their server IP address, port, and additional information. Clients download recent blocks from the chain looking for these special transactions and parsing them for server information. By doing this they acquire a set of available proxy servers.
-
-\subsection{AAAAAAaaannyyways}
-
-Having combined all these aspects of our system, we produced a working prototype. Although the payment structure was simplified and periodic rotation of the proxy pool was not implemented, we created enough of the system to demonstrate it's speed and versatility. We were able to test with multiple clients and servers in a local WiFi network to verify that our system was successful.
