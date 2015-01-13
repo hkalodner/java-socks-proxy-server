@@ -10,15 +10,15 @@
 
 \subsection{Mechanics of Micropayment Channels}
 
-The micropayment protocol visualized in Figure \ref{fig:micropayment-protocol} consists of a combination of on chain and off chain transactions. Micropayments go through an initialization phase in which the client creates (but does not broadcast) an escrow transaction with the maximum amount of spendable money in the channel, requiring both the client's and the server's signatures to unlock. Next, the client creates a refund a refund transaction which recovers all of the money in escrow and is time locked (it will only be valid after a certain number of blocks have been mined, which can be approximated with a time as each block takes an average of 10 minutes to mine). The server then signs the refund transaction. 
+The micropayment protocol visualized in Figure \ref{fig:micropayment-protocol} consists of a combination of on chain and off chain transactions. Micropayments go through an initialization phase in which the client creates (but does not broadcast) an escrow transaction with the maximum amount of spendable money in the channel, requiring both the client's and the server's signatures to unlock. Next, the client creates a refund a refund transaction which recovers all of the money in escrow and is time locked (it will only be valid after a certain number of blocks have been mined, which can be approximated with a time as each block takes an average of 10 minutes to mine). The server then signs the refund transaction.
 
-After receiving the signed refund transaction, the client can then safely broadcast the previously created escrow transaction on the Bitcoin network. This marks the beginning of the payment phase. The client will sign transactions paying incrementally more money from the escrow to the server, and returning less money to themselves. These transactions are all double-spends off of the escrow transaction so only one can be validly placed on the block chain.
+After receiving the signed refund transaction, the client can then safely broadcast the previously created escrow transaction on the Bitcoin network. This marks the beginning of the payment phase. The client will sign transactions paying incrementally more money from the escrow to the server, and returning less money to themselves. These transactions are all double-spends of the escrow transaction so only one can be validly placed on the block chain.
 
 At some point the business between the client and the server comes to an end, bringing about the start of the final, resolution, phase. The most typical ending of business involves the client telling the server that they are done. At this point, the server will sign the payment provided by the client which gives the server the largest amount of money and broadcast it to the Bitcoin network.
 
-\subsection{Advantages of the micropayment Structure}
+\subsection{Advantages of the Micropayment Structure}
 
-There are a few major advantages to using Bitcoin micropayments. First, the micropayments are low risk for both the client and the server. In the initialization phase, the client does not broadcast the escrow transaction until they have a signed refund transaction from the server. This presents the client with no risk because if the server doesn’t behave or fails, the client can wait for the lock time to expire recover all of their coins from escrow. Also, the server has no reason to not sign the refund transaction because it only spends funds that already belong to the client.
+There are a few major advantages to using Bitcoin micropayments. First, the micropayments are low risk for both the client and the server. In the initialization phase, the client does not broadcast the escrow transaction until they have a signed refund transaction from the server. This presents the client with no risk because if the server doesn't behave or fails, the client can wait for the lock time to expire and recover all of their coins from escrow. Also, the server has no reason to not sign the refund transaction because it only spends funds that already belong to the client.
 
 During the payment phase, neither the server nor the client are at much risk. If the server stops providing service, the client will stop sending the new transactions with increased payment. Similarly, if the client stops sending new transactions, the server can stop providing its service. At the worst, the server or the client can only be cheated out of either one unit of service (eg megabyte of bandwidth), or one unit of payment.
 
@@ -53,9 +53,10 @@ On the other hand, just as it may be difficult for censors to find trackers, it 
 .
 
 
-\begin{figure}
+\begin{figure*}
   \centering
-  \includegraphics[width=0.5\textwidth]{proxydiagram.png}
+  \includegraphics[width=1.05\textwidth]{proxydiagram.png}
   \caption{Diagram of proxy rotation}
   \label{fig:proxy-diagram}
-\end{figure}
+\end{figure*}
+
