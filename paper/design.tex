@@ -60,6 +60,7 @@ The advantages of using a tracker based system is that the protocol is much simp
 On the other hand, just as it may be difficult for censors to find trackers, it may be hard for individuals to find trackers. The Bitcoin block chain provides an eventually consistent but decentralized means of storing and viewing information, meaning information on the block chain is hard to block but easy to find. To block the block chain discovery it would likely be necessary to block the Bitcoin protocol, which could be circumvented with format transforming encryption. Another option would be for censors to parse the announce messages on the block chain themselves, and censor all the addresses they find, but this could be abused by advertising arbitrary services, which would essentially force the censor to use a white-list.
 
 \subsection{Vulnerability to Man in the Middle Attacks}
+\label{sec:mitm}
 
 Because just about any machine on the internet can become a proxy there is a risk that some or even most of these nodes are malicious. An adversary could create many sybils that advertise themselves as proxies, allowing the adversary to collect a large amount of traffic going through proxies. This would allow an adversary deanonamize many clients, and violate the confidentiality and integrity of the traffic.
 
