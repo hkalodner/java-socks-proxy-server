@@ -1,24 +1,26 @@
 package org.jdamico.socks.server;
 
 
+import java.net.InetAddress;
 import java.net.ProxySelector;
+import java.net.UnknownHostException;
 
 import org.jdamico.socks.server.commons.Constants;
 import org.jdamico.socks.server.impl.ProxyServerInitiator;
 import org.princeton.btcsocks.server.SocksProxySelector;
+import org.princeton.btsocks.discovery.BittorrentDiscovery;
+import org.princeton.btsocks.discovery.Discovery;
 
 
 public class StartClientProxy {
 	
-	public static void main(String[] args) {
+	public static void main(String[] args) throws UnknownHostException {
 		
 		/*
 		 * enableDebugLog
 		 * listenPort
 		 */
 		System.out.println("StartClientProxy");
-		SocksProxySelector ps = new SocksProxySelector(ProxySelector.getDefault());
-        ProxySelector.setDefault(ps);
 		
 		int port = Constants.LISTEN_PORT;
 		boolean enableDebugLog = true;
@@ -37,6 +39,10 @@ public class StartClientProxy {
 		}	else System.out.println(noParamsMsg);
 		System.out.println("Starting proxy client on port " + port);
 		new ProxyServerInitiator(port, enableDebugLog, false).start();
+		
+		Discovery discovery = new BittorrentDiscovery(InetAddress.getLocalHost(), 6969);
+		SocksProxySelector ps = new SocksProxySelector(ProxySelector.getDefault(), discovery);
+        ProxySelector.setDefault(ps);
 	}
 	
 }

@@ -8,35 +8,22 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
-import org.bitcoinj.core.AbstractBlockChain;
 import org.bitcoinj.core.Block;
 import org.bitcoinj.core.BlockChain;
 import org.bitcoinj.core.Coin;
-import org.bitcoinj.core.FullPrunedBlockChain;
-import org.bitcoinj.core.InsufficientMoneyException;
-import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.core.Peer;
-import org.bitcoinj.core.PeerGroup;
 import org.bitcoinj.core.Sha256Hash;
 import org.bitcoinj.core.StoredBlock;
-import org.bitcoinj.core.StoredUndoableBlock;
 import org.bitcoinj.core.Transaction;
 import org.bitcoinj.core.TransactionOutput;
 import org.bitcoinj.core.Wallet;
 import org.bitcoinj.kits.WalletAppKit;
-import org.bitcoinj.params.RegTestParams;
-import org.bitcoinj.params.UnitTestParams;
 import org.bitcoinj.script.Script;
 import org.bitcoinj.script.ScriptBuilder;
 import org.bitcoinj.script.ScriptChunk;
 import org.bitcoinj.script.ScriptOpCodes;
-import org.bitcoinj.store.BlockStore;
-import org.bitcoinj.store.BlockStoreException;
-import org.bitcoinj.store.FullPrunedBlockStore;
-import org.bitcoinj.store.MemoryBlockStore;
-import org.bitcoinj.store.MemoryFullPrunedBlockStore;
 
-public class BitcoinDiscovery {
+public class BitcoinDiscovery implements Discovery {
     
     public static final byte[] MAGIC_NUMBER = {23, -112, 88, -55};
     public static final int ADVERTISMENT_BUFFER_LENGTH = 40;
@@ -45,6 +32,7 @@ public class BitcoinDiscovery {
 //    private final AbstractBlockChain blockChain;
 //    private final BlockStore store;
     private final WalletAppKit appKit;
+    private final InetAddress announceAddress;
 //    private final NetworkParameters networkParams;
 //    private final PeerGroup peerGroup;
     
@@ -52,8 +40,9 @@ public class BitcoinDiscovery {
      * Construct a new BitcoinDiscovery object that will use the given wallet.
      * @param wallet wallet to burn bitcoins from to advertise address on the block chain.
      */
-    public BitcoinDiscovery(WalletAppKit appKit) {
+    public BitcoinDiscovery(WalletAppKit appKit, InetAddress announceAddress) {
         this.appKit = appKit;
+        this.announceAddress = announceAddress;
         
 //        store = new MemoryBlockStore(wallet.getNetworkParameters());
 //        
@@ -77,9 +66,9 @@ public class BitcoinDiscovery {
         return buffer.array();
     }
     
-    public void announceProxy(InetAddress address, int port) throws InsufficientMoneyException, InterruptedException, ExecutionException {
+    public void announceProxy(InetAddress address, int port) throws Exception {
         Wallet wallet = appKit.wallet();
-    	byte[] advertismentBuffer = announceBuffer(address, port);
+    	byte[] advertismentBuffer = announceBuffer(announceAddress, port);
          Transaction transaction = new Transaction(wallet.getNetworkParameters());
         // TODO: For some reason bitcoinj doesn't want to complete this transaction with the min nondust amount
         // transaction.addOutput(Transaction.MIN_NONDUST_OUTPUT, new ScriptBuilder().op(ScriptOpCodes.OP_RETURN).data(advertismentBuffer).build());
@@ -91,23 +80,31 @@ public class BitcoinDiscovery {
         // peerGroup.broadcastTransaction(sendRequest.tx).get();
     }
     
-    public List<RemoteProxyAddress> getProxies() throws InterruptedException, ExecutionException, BlockStoreException {
+    public List<RemoteProxyAddress> getProxies() {
         BlockChain blockChain = appKit.chain();
         List<RemoteProxyAddress> proxies = new ArrayList<RemoteProxyAddress>();
         System.out.println("Block chain height: " + blockChain.getBestChainHeight());
         Peer peer = appKit.peerGroup().getDownloadPeer();
         StoredBlock storedBlock = blockChain.getChainHead();
-        Block block = peer.getBlock(storedBlock.getHeader().getHash()).get(); 
         
-        int i = 0;
-        do {
-            List<RemoteProxyAddress> addressesInBlock = findProxiesInBlock(block);
-            proxies.addAll(addressesInBlock);
-            
-            i += 1;
-            Sha256Hash prevBlockHash = block.getPrevBlockHash();
-            block = peer.getBlock(prevBlockHash).get();
-        } while (block != null && i < 20);
+		try {
+			Block block = peer.getBlock(storedBlock.getHeader().getHash()).get();
+			int i = 0;
+	        do {
+	            List<RemoteProxyAddress> addressesInBlock = findProxiesInBlock(block);
+	            proxies.addAll(addressesInBlock);
+	            
+	            i += 1;
+	            Sha256Hash prevBlockHash = block.getPrevBlockHash();
+	            block = peer.getBlock(prevBlockHash).get();
+	        } while (block != null && i < 20);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ExecutionException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} 
         
         return proxies;
     }

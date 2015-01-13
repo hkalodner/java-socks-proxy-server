@@ -49,8 +49,8 @@ public class TestBitcoinDiscovery {
 //		waitForSufficientBalance(appKit.wallet(), myKey, appKit.params(), Coin.valueOf(10, 0));
 //		System.out.println("Money received.");
 		
-		BitcoinDiscovery discovery = new BitcoinDiscovery(appKit);
-//		discovery.announceProxy(InetAddress.getLocalHost(), 8080);
+		BitcoinDiscovery discovery = new BitcoinDiscovery(appKit, InetAddress.getLocalHost());
+//		discovery.announceProxy(8080);
 //		Thread.sleep(20000);
 		
 		List<RemoteProxyAddress> addresses = discovery.getProxies(); 
