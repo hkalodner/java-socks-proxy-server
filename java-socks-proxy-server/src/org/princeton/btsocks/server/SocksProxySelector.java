@@ -1,4 +1,4 @@
-package org.princeton.btcsocks.server;
+package org.princeton.btsocks.server;
 //package org.bitcoinj.examples;
 
 import org.bitcoinj.core.*;
@@ -14,6 +14,8 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.Uninterruptibles;
 
+import org.princeton.btsocks.discovery.Discovery;
+import org.princeton.btsocks.discovery.RemoteProxyAddress;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
@@ -29,9 +31,6 @@ import java.net.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-
-import org.princeton.btsocks.discovery.Discovery;
-import org.princeton.btsocks.discovery.RemoteProxyAddress;
 
 // Taken from https://docs.oracle.com/javase/8/docs/technotes/guides/net/proxies.html
 
