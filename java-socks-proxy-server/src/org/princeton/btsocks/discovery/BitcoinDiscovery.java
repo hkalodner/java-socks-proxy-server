@@ -32,6 +32,7 @@ public class BitcoinDiscovery implements Discovery {
 //    private final AbstractBlockChain blockChain;
 //    private final BlockStore store;
     private final WalletAppKit appKit;
+    private final InetAddress announceAddress;
 //    private final NetworkParameters networkParams;
 //    private final PeerGroup peerGroup;
     
@@ -39,8 +40,9 @@ public class BitcoinDiscovery implements Discovery {
      * Construct a new BitcoinDiscovery object that will use the given wallet.
      * @param wallet wallet to burn bitcoins from to advertise address on the block chain.
      */
-    public BitcoinDiscovery(WalletAppKit appKit) {
+    public BitcoinDiscovery(WalletAppKit appKit, InetAddress announceAddress) {
         this.appKit = appKit;
+        this.announceAddress = announceAddress;
         
 //        store = new MemoryBlockStore(wallet.getNetworkParameters());
 //        
@@ -66,7 +68,7 @@ public class BitcoinDiscovery implements Discovery {
     
     public void announceProxy(InetAddress address, int port) throws Exception {
         Wallet wallet = appKit.wallet();
-    	byte[] advertismentBuffer = announceBuffer(address, port);
+    	byte[] advertismentBuffer = announceBuffer(announceAddress, port);
          Transaction transaction = new Transaction(wallet.getNetworkParameters());
         // TODO: For some reason bitcoinj doesn't want to complete this transaction with the min nondust amount
         // transaction.addOutput(Transaction.MIN_NONDUST_OUTPUT, new ScriptBuilder().op(ScriptOpCodes.OP_RETURN).data(advertismentBuffer).build());
