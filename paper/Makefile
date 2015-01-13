@@ -10,7 +10,7 @@ SOURCES=$(NAME)-cos518.tex \
 	abstract.tex \
 	intro.tex \
 	design.tex \
-	eval.tex \
+	implementation.tex \
 	related.tex \
 	conclusion.tex \
 	local.bib
