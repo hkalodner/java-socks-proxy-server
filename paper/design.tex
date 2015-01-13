@@ -1,9 +1,16 @@
 \section{Design}
 \label{sec:design}
 
+\begin{figure*}
+  \centering
+  \includegraphics[width=0.95\textwidth]{microtransactions.png}
+  \caption{Diagram of micropayment protocol}
+  \label{fig:micropayment-protocol}
+\end{figure*}
+
 \subsection{Mechanics of Micropayment Channels}
 
-Micropayments go through an initialization phase in which the client creates (but does not broadcast) an escrow transaction with the maximum amount of spendable money in the channel, requiring both the client's and the server's signatures to unlock. Next, the client creates a refund a refund transaction which recovers all of the money in escrow and is time locked (it will only be valid after a certain number of blocks have been mined, which can be approximated with a time as each block takes an average of 10 minutes to mine). The server then signs the refund transaction. 
+The micropayment protocol visualized in Figure \ref{fig:micropayment-protocol} consists of a combination of on chain and off chain transactions. Micropayments go through an initialization phase in which the client creates (but does not broadcast) an escrow transaction with the maximum amount of spendable money in the channel, requiring both the client's and the server's signatures to unlock. Next, the client creates a refund a refund transaction which recovers all of the money in escrow and is time locked (it will only be valid after a certain number of blocks have been mined, which can be approximated with a time as each block takes an average of 10 minutes to mine). The server then signs the refund transaction. 
 
 After receiving the signed refund transaction, the client can then safely broadcast the previously created escrow transaction on the Bitcoin network. This marks the beginning of the payment phase. The client will sign transactions paying incrementally more money from the escrow to the server, and returning less money to themselves. These transactions are all double-spends off of the escrow transaction so only one can be validly placed on the block chain.
 
@@ -15,14 +22,14 @@ There are a few major advantages to using Bitcoin micropayments. First, the micr
 
 During the payment phase, neither the server nor the client are at much risk. If the server stops providing service, the client will stop sending the new transactions with increased payment. Similarly, if the client stops sending new transactions, the server can stop providing its service. At the worst, the server or the client can only be cheated out of either one unit of service (eg megabyte of bandwidth), or one unit of payment.
 
-The resolution phase can start in a few different ways other than the one discussed in the previous subsection. If the server doesn’t hear an updated transaction from the client for a long period of time, it will assume the client is done and close the connection, moving to the resolution phase. Additionally, the server will move to the resolution phase if the current time becomes too close to the unlock time for the refund transaction. If the server fails, the resolution phase consists of the client waiting to be able to post the refund transaction. This protects the client from an unresponsive server. An additional benefit of the micropayment structure is that it can be used to pay for arbitrarily small amounts of service (for proxy rotation, the units of service still need to be large enough that the overhead of the Bitcoin transactions doesn't dominate the data flow). This is useful as a single unit of service/payment is the risk being taken on by the server/client.
+The resolution phase can start in a few different ways other than the one discussed in the previous subsection. If the server doesn't hear an updated transaction from the client for a long period of time, it will assume the client is done and close the connection, moving to the resolution phase. Additionally, the server will move to the resolution phase if the current time becomes too close to the unlock time for the refund transaction. If the server fails, the resolution phase consists of the client waiting to be able to post the refund transaction. This protects the client from an unresponsive server. An additional benefit of the micropayment structure is that it can be used to pay for arbitrarily small amounts of service (for proxy rotation, the units of service still need to be large enough that the overhead of the Bitcoin transactions doesn't dominate the data flow). This is useful as a single unit of service/payment is the risk being taken on by the server/client.
 
 \subsection{Drawbacks of Micropayments bitches}
 
 There are a few drawbacks associated with the micropayment structure. First, 
 the client and server must deal with the confirmation time of transactions in Bitcoin. When the client makes the original escrow transaction, the server must wait for the transaction to be confirmed before it starts serving the client. If the server does not wait for the transaction to be confirmed, the client could attempt to double spend the money in the escrow, taking the money out of the payment channel. If this were to happen, the server would not be paid for the service it had already provided (making the risk larger than one service increment). This means that the escrow needs to be set up in advance of the client using the proxy. 
 
-Another small drawback of the micropayment structure is that even though a client will recoup their funds from escrow eventually (from a dead server), they must wait for the refund transaction to become available. Currently, the waiting period is set to 24 hours, which means that a client’s money would be unavailable for this time. If a client puts a lot of money in escrow with several derelict servers, they can cause a large amount of their funds to become temporarily frozen.
+Another small drawback of the micropayment structure is that even though a client will recoup their funds from escrow eventually (from a dead server), they must wait for the refund transaction to become available. Currently, the waiting period is set to 24 hours, which means that a client's money would be unavailable for this time. If a client puts a lot of money in escrow with several derelict servers, they can cause a large amount of their funds to become temporarily frozen.
 
 
 \subsection{Financial Design and Motivation}
@@ -35,7 +42,7 @@ We would like to employ a third economic strategy, involving Bitcoin, to bring m
 \label{sec:discovery}
 
 The proxy servers will be running, each listening on their respective port and IP addresses. Clients need a means of locating these proxy servers. We developed two methods for a client to discover proxies.
-The first method involves using a BitTorrent tracker. A BitTorrent tracker is typically used by BitTorrent clients in order to find peers to download files from. A torrent client will connect to a tracker and send an announce request. The request will include a hash of the files the client is seeking. The tracker will then send an announce response to the client with a list of peers who also have that file, based on the info hash given. In our BitTorrent discovery implementation, we created a random “magic number” hash that all clients and proxies would announce to a bittorrent tracker. This way the tracker's announce responses will always include the IP addresses and ports of proxies.
+The first method involves using a BitTorrent tracker. A BitTorrent tracker is typically used by BitTorrent clients in order to find peers to download files from. A torrent client will connect to a tracker and send an announce request. The request will include a hash of the files the client is seeking. The tracker will then send an announce response to the client with a list of peers who also have that file, based on the info hash given. In our BitTorrent discovery implementation, we created a random ``magic number'' hash that all clients and proxies would announce to a bittorrent tracker. This way the tracker's announce responses will always include the IP addresses and ports of proxies.
 
 The second method we employed is the Bitcoin block chain itself. The Bitcoin block chain stores a record of all transactions in the Bitcoin system. Typical transactions describe where the Bitcoins are coming from and where they are going, but some transaction types can be filled with 40 bytes of data. Forty bytes of data is sufficient to store an IP address and port number, but it would be impractical to interpret every 40 bytes of data on the block chain as an IP address and port (as the 40 bytes could be unrelated data). In order to detect which bytes can be interpreted as IP addresses and ports, proxy hosts will prefix the bytes of the IP address and port they are advertising with a magic number of sufficient length such that it is unlikely that the magic number appears in the normal operation of Bitcoin. The cost for a proxy to announce via Bitcoin is the transaction fee, plus a miniscule amount of Bitcoin, as the Bitcoin network doesn't accept transfers of zero Bitcoin.
 
@@ -45,8 +52,10 @@ The advantages of using a tracker based system is that the protocol is much simp
 On the other hand, just as it may be difficult for censors to find trackers, it may be hard for individuals to find trackers. The Bitcoin block chain provides an eventually consistent but decentralized means of storing and viewing information, meaning information on the block chain is hard to block but easy to find. To block the block chain discovery it would likely be necessary to block the Bitcoin protocol, which could be circumvented with format transforming encryption. Another option would be for censors to parse the announce messages on the block chain themselves, and censor all the addresses they find, but this could be abused by advertising arbitrary services, which would essentially force the censor to use a whitelist
 .
 
-\begin{figure*}
+
+\begin{figure}
   \centering
-  \includegraphics[width=0.95\textwidth]{microtransactions.png}
-  \caption{Diagram of micropayment protocol}
-\end{figure*}
+  \includegraphics[width=0.5\textwidth]{proxydiagram.png}
+  \caption{Diagram of proxy rotation}
+  \label{fig:proxy-diagram}
+\end{figure}
