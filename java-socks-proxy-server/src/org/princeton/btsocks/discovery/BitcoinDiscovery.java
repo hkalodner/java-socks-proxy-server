@@ -28,29 +28,12 @@ public class BitcoinDiscovery implements Discovery {
     public static final byte[] MAGIC_NUMBER = {23, -112, 88, -55};
     public static final int ADVERTISMENT_BUFFER_LENGTH = 40;
     
-//    private final Wallet wallet;
-//    private final AbstractBlockChain blockChain;
-//    private final BlockStore store;
     private final WalletAppKit appKit;
     private final InetAddress announceAddress;
-//    private final NetworkParameters networkParams;
-//    private final PeerGroup peerGroup;
     
-    /**
-     * Construct a new BitcoinDiscovery object that will use the given wallet.
-     * @param wallet wallet to burn bitcoins from to advertise address on the block chain.
-     */
     public BitcoinDiscovery(WalletAppKit appKit, InetAddress announceAddress) {
         this.appKit = appKit;
         this.announceAddress = announceAddress;
-        
-//        store = new MemoryBlockStore(wallet.getNetworkParameters());
-//        
-//        try {
-//            blockChain = new BlockChain(wallet.getNetworkParameters(), wallet, store);
-//        } catch (BlockStoreException e) {
-//            throw new RuntimeException(e.getMessage());
-//        }
     }
     
     private byte[] announceBuffer(InetAddress address, int port) {
@@ -71,13 +54,9 @@ public class BitcoinDiscovery implements Discovery {
     	byte[] advertismentBuffer = announceBuffer(announceAddress, port);
          Transaction transaction = new Transaction(wallet.getNetworkParameters());
         // TODO: For some reason bitcoinj doesn't want to complete this transaction with the min nondust amount
-        // transaction.addOutput(Transaction.MIN_NONDUST_OUTPUT, new ScriptBuilder().op(ScriptOpCodes.OP_RETURN).data(advertismentBuffer).build());
         transaction.addOutput(Coin.COIN, new ScriptBuilder().op(ScriptOpCodes.OP_RETURN).data(advertismentBuffer).build());
         Wallet.SendRequest sendRequest = Wallet.SendRequest.forTx(transaction);
-//        wallet.completeTx(sendRequest);
-//        wallet.commitTx(sendRequest.tx);
         wallet.sendCoins(sendRequest);
-        // peerGroup.broadcastTransaction(sendRequest.tx).get();
     }
     
     public List<RemoteProxyAddress> getProxies() {
