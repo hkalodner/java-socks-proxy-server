@@ -8,6 +8,7 @@
   \label{fig:micropayment-protocol}
 \end{figure*}
 
+In this section, we discuss the general design of the proxy rotation protocol, starting with the motivation for adding the Bitcoin micropayments.
 
 \subsection{Financial Design and Motivation}
 
@@ -15,6 +16,10 @@ Currently the available proxy market is made up of free proxies which are slow, 
 
 We would like to employ a third economic strategy, involving the Bitcoin micropayment channel, to bring many parties to the market, on both the client and proxy side. Using Bitcoin for payment to proxies provides significant benefits over free proxies or pay by month proxies. As opposed to free proxies, using Bitcoin micropayments could make proxies much more available. Once servers are collecting a small fee, it is in their interest to maintain a certain quality of service. Specifically, the Bitcoin fees could be configured in such a way as to charge per byte, or per request. Thus, a server would make more money if it was quick (an incentive to be fast), and would only be paid if it was functioning (an incentive to be available). When compared to credit card subscriptions, the Bitcoin payment method also has advantages. Bitcoin is a pseudonymous payment system, which allows payment to a proxy without revealing the identity of the client. 
 Because of the nature of the micropayments, the relationship between a client and a server is short. This is particularly desirable for the client if the client is trying to evade oppressive censorship and the proxy constantly runs the risk of being shut down at some point before the payment period ends (in which case the client would lose out on a service they have already paid for).
+
+\subsection{Design Details of Proxy Rotation}
+
+There are some additional details that must be addressed with proxy rotating as seen in Figure \ref{fig:proxy-diagram}, as opposed to normal proxy usage. Existing proxy rotating schemes are not designed for human users since they are built for web crawlers. In general usage, a proxy rotator has to deal with both large and small downloads and maintain a consistent, uninterrupted user experience even while rapidly switching proxies. Thus multiple proxies will have to be in use at the same time. In order to insure continuous service, the proxy rotation will need to begin talking to the next proxy before a connection is made to begin establishing the details of the connection (such as how many Bitcoins should be put into escrow). For this, a rolling pool of proxies must be maintained. When rotating proxies, it is critical to have a large pool of available proxies that are willing to support a user's traffic, creating the need for the micropayments.
 
 \subsection{Mechanics of Micropayment Channels}
 
@@ -46,7 +51,7 @@ The proxy servers will be running, each listening on their respective port and I
 
 The second method we employed is the Bitcoin block chain itself. The Bitcoin block chain stores a record of all transactions in the Bitcoin system. Typical transactions describe where the Bitcoins are coming from and where they are going, but some transaction types can be filled with 40 bytes of data. Forty bytes of data is sufficient to store an IP address and port number. It would be impractical to interpret every 40 bytes of data on the block chain as an IP address and port (as the 40 bytes could be unrelated data). In order to detect which bytes can be interpreted as IP addresses and ports, proxy hosts will prefix the bytes of the IP address and port they are advertising with a magic number of sufficient length such that it is unlikely that the magic number appears in the normal operation of Bitcoin. The cost for a proxy to announce via Bitcoin is the transaction fee, plus a minuscule amount of Bitcoin, as the Bitcoin network doesn't accept transfers of zero Bitcoin.
 
-\subsubsection{Comparison of Discovery Mechanisms}
+\subsection{Comparison of Discovery Mechanisms}
 The advantages of using a tracker based system is that the protocol is much simpler and doesn't require spending Bitcoins to advertise. An announcement to a BitTorrent tracker takes time on the order of seconds, whereas it takes an average of 10 minutes for a Bitcoin block to be mined. This causes a larger delay for proxies who are trying to bootstrap themselves. Thus, using trackers require less time and money for a proxy to get bootstrap. Another advantage of trackers is that there can be many trackers, as any existing tracker can now become a means of proxy discovery, or people could even run their own trackers on a smaller scale. Censors would have a harder time finding and eliminating all proxies or trackers.
 
 On the other hand, just as it may be difficult for censors to find trackers, it may be hard for individuals to find trackers. The Bitcoin block chain provides an eventually consistent but decentralized means of storing and viewing information, meaning information on the block chain is hard to block but easy to find. To block the block chain discovery it would likely be necessary to block the Bitcoin protocol, which could be circumvented with format transforming encryption. Another option would be for censors to parse the announce messages on the block chain themselves, and censor all the addresses they find, but this could be abused by advertising arbitrary services, which would essentially force the censor to use a white-list.

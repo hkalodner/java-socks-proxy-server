@@ -1,10 +1,12 @@
 \section{Introduction}
 \label{sec:intro}
 
+Proxies are great for a variety of tasks such as browsing privately and evading censorship. It can be hard to find enough proxies, however, if a client is interested in rotating between servers. We offer a solution to this problem by attaching Bitcoin micropayments to the proxies to encourage servers. 
+
 \subsection{Proxies}
 % Example of incorporation citations~\cite{coral:nsdi04}.
 
-Proxies are great for a variety of tasks such as browsing privately and evading censorship. One technology associated with proxies is proxy rotation, where a user rotates over a number of different proxies rather than just using one. This is currently used by web crawlers in order to avoid being blocked by a website by appearing to come from many different IP addresses. With some extension this technique can be applied to general proxy usage. There already exist some proxy services which use a similar model of owning many proxies and rotating a user's traffic through them, but this has the disadvantage of still being centralized on the business entity controlling the proxies. There are some additional details that must be addressed with proxy rotating, as opposed to normal proxy usage. Existing proxy rotating schemes are not designed for human users since they are built for web crawlers. In general usage, a proxy rotator has to deal with both large and small downloads and maintain a consistent, uninterrupted user experience even while rapidly switching proxies. Thus multiple proxies will have to be in use at the same time. In order to insure continuous service, the proxy rotation will need to begin talking to the next proxy before a connection is made to begin establishing the details of the connection (such as how many Bitcoins should be put into escrow). For this, a rolling pool of proxies must be maintained. When rotating proxies, it is critical to have a large pool of available proxies that are willing to support a user's traffic.
+One technology associated with proxies is proxy rotation, where a user rotates over a number of different proxies rather than just using one. This is currently used by web crawlers in order to avoid being blocked by a website by appearing to come from many different IP addresses. With some extension this technique can be applied to general proxy usage. There already exist some proxy services which use a similar model of owning many proxies and rotating a user's traffic through them, but this has the disadvantage of still being centralized on the business entity controlling the proxies. 
 
 \subsection{Background on Bitcoin}
 
