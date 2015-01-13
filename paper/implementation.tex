@@ -3,12 +3,15 @@
 
 In this section we describe the design and creation of a basic prototype of our proxy system. Our goal was to implement two different programs. A local proxy that clients of the proxy network make use of, and a server proxy that clients connect to. Both proxies act as SOCKS servers as well as Bitcoin wallets. When the client turns on it discovers a set of active proxy servers, opens payment channels to them, and begins rotating its traffic over the active servers. It gradually pays for traffic as it requests pages. A user makes use of the client by directing their machine to tunnel traffic through the SOCKS server running locally.
 
+\subsection{Dependency Stack}
 We locally deployed a large stack of software in order to locally deploy and test our system. For the BitTorrent based discovery system we ran a UDP tracker, UDPT. In order to test local Bitcoin network, we used the Bitcoind utility in regression test mode, which allows you to create and mine on a private block chain locally on your own computer. This allowed us to run all our tests without spending real Bitcoins or waiting for block mining and propagation delays. 
 
 On top of this base layer of infrastructure we assembled our system on top of two distinct projects, Java Socks Proxy Server, a SOCKS 4 and SOCKS 5 proxy server written in Java and BitcoinJ, a Java implementation of the Bitcoin protocol.
 
+\subsection{Proxy Development}
 We began by implementing the pure proxy section of the system without the payment system included. The main section of the program was exactly the same for the client and the server. The only difference being that the server forwards traffic directly to its destination whereas the client chooses a proxy server to tunnel requests through. The was achieved by using the Java class ProxySelector. This allowed us to dynamically decide which proxy to use every time a connection is made to a server. The class nicely encapsulated our code, allowing us to incorporate our client system into any sort of local server or application.
 
+\subsection{Bitcoin Development}
 Next we incorporated the Bitcoin part of the system. The BitcoinJ library includes support of Bitcoin micropayment channels which we used for our payment system. Each proxy server runs a Bitcoin payment server. A client opens a Bitcoin payment connection to each server and sends payment each time it requests to load a page. The server blocks each connection until a payment is received, ensuring the content is actually paid for.
 
 \subsection{Discovery}
@@ -16,8 +19,6 @@ Finally we had to implement the discovery methods by which clients can discover 
 
 Our other discovery service was based around the Bitcoin block chain. Servers periodically issue OP\_RETURN transactions which contain a special data structure with their server IP address, port, and additional information. Clients download recent blocks from the chain looking for these special transactions and parsing them for server information. By doing this they acquire a set of available proxy servers.
 
-
 \subsection{AAAAAAaaannyyways}
-
 
 Having combined all these aspects of our system, we produced a working prototype. Although the payment structure was simplified and periodic rotation of the proxy pool was not implemented, we created enough of the system to demonstrate it's speed and versatility. We were able to test with multiple clients and servers in a local WiFi network to verify that our system was successful.
