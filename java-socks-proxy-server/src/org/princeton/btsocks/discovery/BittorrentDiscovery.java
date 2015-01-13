@@ -12,7 +12,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
-public class BittorrentDiscovery {
+public class BittorrentDiscovery implements Discovery {
 
     private InetAddress trackerAddress;
     private final int trackerPort;

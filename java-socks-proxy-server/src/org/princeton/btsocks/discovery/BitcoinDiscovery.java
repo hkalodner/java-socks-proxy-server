@@ -36,7 +36,7 @@ import org.bitcoinj.store.FullPrunedBlockStore;
 import org.bitcoinj.store.MemoryBlockStore;
 import org.bitcoinj.store.MemoryFullPrunedBlockStore;
 
-public class BitcoinDiscovery {
+public class BitcoinDiscovery implements Discovery {
     
     public static final byte[] MAGIC_NUMBER = {23, -112, 88, -55};
     public static final int ADVERTISMENT_BUFFER_LENGTH = 40;
@@ -45,6 +45,7 @@ public class BitcoinDiscovery {
 //    private final AbstractBlockChain blockChain;
 //    private final BlockStore store;
     private final WalletAppKit appKit;
+    private final InetAddress announceAddress;
 //    private final NetworkParameters networkParams;
 //    private final PeerGroup peerGroup;
     
@@ -52,8 +53,9 @@ public class BitcoinDiscovery {
      * Construct a new BitcoinDiscovery object that will use the given wallet.
      * @param wallet wallet to burn bitcoins from to advertise address on the block chain.
      */
-    public BitcoinDiscovery(WalletAppKit appKit) {
+    public BitcoinDiscovery(WalletAppKit appKit, InetAddress announceAddress) {
         this.appKit = appKit;
+        this.announceAddress = announceAddress;
         
 //        store = new MemoryBlockStore(wallet.getNetworkParameters());
 //        
@@ -77,9 +79,9 @@ public class BitcoinDiscovery {
         return buffer.array();
     }
     
-    public void announceProxy(InetAddress address, int port) throws InsufficientMoneyException, InterruptedException, ExecutionException {
+    public void announceProxy(int port) throws InsufficientMoneyException, InterruptedException, ExecutionException {
         Wallet wallet = appKit.wallet();
-    	byte[] advertismentBuffer = announceBuffer(address, port);
+    	byte[] advertismentBuffer = announceBuffer(announceAddress, port);
          Transaction transaction = new Transaction(wallet.getNetworkParameters());
         // TODO: For some reason bitcoinj doesn't want to complete this transaction with the min nondust amount
         // transaction.addOutput(Transaction.MIN_NONDUST_OUTPUT, new ScriptBuilder().op(ScriptOpCodes.OP_RETURN).data(advertismentBuffer).build());
