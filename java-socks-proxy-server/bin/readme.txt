@@ -23,3 +23,36 @@ The author accepts no liability if it causes any damage to your
 computer.
 
 *************************************************************************
+
+Running Intructions
+
+This project has a number of dependencies which must be installed for
+it to function.
+
+First bitcoind must be installed on your system in order to support the
+Bitcoin regression network. This is included in the bitcoin package found
+at https://github.com/bitcoin/bitcoin or installed by package manager.
+
+To start the network run:
+bitcoind -regtest
+
+Then to generate a number of blocks to start the chain run:
+bitcoin-cli -regtest setgenerate true 101
+
+Next a UDP BitTorrent tracker must be run on the local machine.
+We suggest either opentracker <http://erdgeist.org/arts/software/opentracker/>
+or UDPT <https://code.google.com/p/udpt/>
+
+----------------------------------
+Proxy Client and Server
+
+Program takes 3 args:
+[is Server] [port number] [show debug info]
+
+To run the server run:
+StartProxy.java true 0 true
+
+To start the client run:
+StartProxy.java false 8888 true
+
+Then point your browser to SOCKS 5 over port 8888 in order to start using the proxy.
