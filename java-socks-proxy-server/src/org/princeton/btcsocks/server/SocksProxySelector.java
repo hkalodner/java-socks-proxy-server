@@ -7,7 +7,6 @@ import org.bitcoinj.params.RegTestParams;
 import org.bitcoinj.protocols.channels.PaymentChannelClientConnection;
 import org.bitcoinj.protocols.channels.StoredPaymentChannelClientStates;
 import org.bitcoinj.protocols.channels.ValueOutOfRangeException;
-import org.bitcoinj.store.BlockStoreException;
 import org.bitcoinj.utils.BriefLogFormatter;
 
 import com.google.common.collect.ImmutableList;
@@ -31,8 +30,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.princeton.btsocks.discovery.BitcoinDiscovery;
-import org.princeton.btsocks.discovery.BittorrentDiscovery;
 import org.princeton.btsocks.discovery.Discovery;
 import org.princeton.btsocks.discovery.RemoteProxyAddress;
 
@@ -40,7 +37,7 @@ import org.princeton.btsocks.discovery.RemoteProxyAddress;
 
 public class SocksProxySelector extends ProxySelector {
 
-	private static final org.slf4j.Logger log = LoggerFactory.getLogger(ExamplePaymentChannelClient.class);
+	private static final org.slf4j.Logger log = LoggerFactory.getLogger(SocksProxySelector.class);
 	private WalletAppKit appKit;
 	private final Coin channelSize;
 	private final ECKey myKey;
@@ -61,11 +58,6 @@ public class SocksProxySelector extends ProxySelector {
 		System.out.println("Running constructor");
 		// Save the previous default
 		defsel = def;
-		
-		final String host = "127.0.0.1";//TODO Fix this-- should be defined based on the address of the proxy
-		final int timeoutSecs = 15;
-		final InetSocketAddress server = new InetSocketAddress(host, 4242);
-
 
 		BriefLogFormatter.init();
 		channelSize = COIN;
@@ -103,6 +95,8 @@ public class SocksProxySelector extends ProxySelector {
 		List<RemoteProxyAddress> proxyList = getActiveProxies();
 		System.out.println("Active Proxy List:\n" + proxyList);
 
+		
+		
 		for (RemoteProxyAddress proxyAddress : proxyList) {
 			Proxy proxy = new Proxy(Proxy.Type.SOCKS, proxyAddress.address());
 			Socket socket = new Socket(proxy);
@@ -123,7 +117,8 @@ public class SocksProxySelector extends ProxySelector {
 			}
 			if (proxyAddress.paymentChannel() == null) {
 				try {
-					proxyAddress.setPaymentChannel(openPaymentChannel(timeoutSecs, server, host));
+					final int timeoutSecs = 15;
+					proxyAddress.setPaymentChannel(openPaymentChannel(timeoutSecs, proxyAddress));
 				} catch (IOException e) {
 					e.printStackTrace();
 				} catch (ValueOutOfRangeException e) {
@@ -230,10 +225,12 @@ public class SocksProxySelector extends ProxySelector {
 		}
 	}
 	
-	private PaymentChannelClientConnection openPaymentChannel(int timeoutSecs, InetSocketAddress server, String channelID) throws InterruptedException, IOException, ValueOutOfRangeException, ExecutionException {
+	private PaymentChannelClientConnection openPaymentChannel(int timeoutSecs, RemoteProxyAddress proxyServer) throws InterruptedException, IOException, ValueOutOfRangeException, ExecutionException {
 		System.out.println("appkit state2:" + appKit.state());
+		InetSocketAddress server = new InetSocketAddress(proxyServer.address().getAddress(), 4242);
+		
 		PaymentChannelClientConnection client = new PaymentChannelClientConnection(
-				server, timeoutSecs, appKit.wallet(), myKey, channelSize.add(Wallet.SendRequest.DEFAULT_FEE_PER_KB), channelID);
+				server, timeoutSecs, appKit.wallet(), myKey, channelSize.add(Wallet.SendRequest.DEFAULT_FEE_PER_KB), proxyServer.address().getHostName());
 		System.out.println("Putting " + channelSize.add(Wallet.SendRequest.DEFAULT_FEE_PER_KB) + " in channel");
 		// Opening the channel requires talking to the server, so it's asynchronous.
 

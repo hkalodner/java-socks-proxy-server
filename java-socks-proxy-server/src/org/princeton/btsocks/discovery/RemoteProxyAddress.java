@@ -3,13 +3,12 @@ package org.princeton.btsocks.discovery;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
-import java.net.SocketAddress;
 
 import org.bitcoinj.protocols.channels.PaymentChannelClientConnection;
 
 public class RemoteProxyAddress {
 	
-	private final SocketAddress address;
+	private final InetSocketAddress address;
 	private final Proxy proxy;
 	private PaymentChannelClientConnection paymentChannel = null;
 	// How many times did we fail to reach this proxy?
@@ -20,7 +19,7 @@ public class RemoteProxyAddress {
 	    this.proxy = new Proxy(Proxy.Type.SOCKS, this.address);
 	}
 
-	public SocketAddress address() {
+	public InetSocketAddress address() {
 		return address;
 	}
 
