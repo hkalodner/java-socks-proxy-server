@@ -204,7 +204,7 @@ public class ProxyServerInitiator	implements	Runnable, HandlerFactory
 					
 					payment = clientPaymentMap.get(address);
 					if (payment == null) {
-						payment = new Semaphore(1, true);
+						payment = new Semaphore(4, true);
 						clientPaymentMap.put(address, payment);
 						System.out.println("Creating entry in checkClientConnection");
 					}
@@ -259,7 +259,7 @@ public class ProxyServerInitiator	implements	Runnable, HandlerFactory
 				Semaphore payment = clientPaymentMap.get(realAddress);
 				if (payment == null) {
 					System.out.println("Creating entry in paymentIncrease");
-					payment = new Semaphore(1, true);
+					payment = new Semaphore(4, true);
 					clientPaymentMap.put(realAddress, payment);
 				}
 				payment.release();

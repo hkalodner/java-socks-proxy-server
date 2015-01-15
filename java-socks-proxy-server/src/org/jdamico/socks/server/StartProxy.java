@@ -34,8 +34,8 @@ public class StartProxy {
 		proxyServerInitiator.start();
 		System.out.println("Starting proxy on port " + port);
 		
-		if (!isServer) {
-			Discovery discovery = new BittorrentDiscovery(InetAddress.getLocalHost(), 6969);
+		if (!isServer) { 
+			Discovery discovery = new BittorrentDiscovery(InetAddress.getByName("10.9.138.0"), 6969);
 			SocksProxySelector ps = new SocksProxySelector(ProxySelector.getDefault(), discovery);
 	        ProxySelector.setDefault(ps);
 		}

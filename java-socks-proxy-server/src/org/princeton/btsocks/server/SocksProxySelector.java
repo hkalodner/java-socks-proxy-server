@@ -159,6 +159,7 @@ public class SocksProxySelector extends ProxySelector {
 			int i = 0;
 			for (RemoteProxyAddress p : proxies.values()) {
 				if (i == proxNum) {
+					System.out.println("Using proxy " + p.toProxy() + " for connection");
 					l.add(p.toProxy());
 					sendPayment(p.paymentChannel());
 				}
