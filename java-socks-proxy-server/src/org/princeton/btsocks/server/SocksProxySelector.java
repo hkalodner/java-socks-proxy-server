@@ -54,7 +54,6 @@ public class SocksProxySelector extends ProxySelector {
 	Map<SocketAddress, RemoteProxyAddress> proxies = new HashMap<SocketAddress, RemoteProxyAddress>();
 
 	public SocksProxySelector(ProxySelector def, Discovery discovery) {
-		System.out.println("Running constructor");
 		// Save the previous default
 		defsel = def;
 
@@ -79,7 +78,6 @@ public class SocksProxySelector extends ProxySelector {
 		appKit.connectToLocalHost();
 		appKit.startAsync();
 		appKit.awaitRunning();
-		System.out.println("appkit state:" + appKit.state());
 //		assert appKit.state() == AbstractIdleService.Service.State;
 		// We now have active network connections and a fully synced wallet.
 		// Add a new key which will be used for the multisig contract.
@@ -92,7 +90,6 @@ public class SocksProxySelector extends ProxySelector {
 		
 		// Populate the HashMap (List of proxies)
 		List<RemoteProxyAddress> proxyList = getActiveProxies();
-		System.out.println("Active Proxy List:\n" + proxyList);
 
 		
 		
@@ -136,7 +133,6 @@ public class SocksProxySelector extends ProxySelector {
 	
 	public List<RemoteProxyAddress> getActiveProxies() {
 		List<RemoteProxyAddress> proxyList = discovery.getProxies();
-		System.out.println("proxyList = " + proxyList);
 		return proxyList;
 	}
 
@@ -151,19 +147,12 @@ public class SocksProxySelector extends ProxySelector {
 		}
 
 		requestNum++;
-
-		System.out.println("Trying to select");
-		System.out.println("scheme = " + uri.getScheme());
-		System.out.println("host = " + uri.getHost());
-		System.out.println("port = " + uri.getPort());
-		System.out.println("appkit state begin select:" + appKit.state());
 		
 		/*
 		 * If it's a http (or https) URL, then we use our own list.
 		 */
 		String protocol = uri.getScheme();
 		if ("socket".equalsIgnoreCase(protocol)) {
-			System.out.println("appkit state after got all proxies:" + appKit.state());
 			ArrayList<Proxy> l = new ArrayList<Proxy>();
 			assert proxies.size() > 0;
 			int proxNum = requestNum % proxies.size();
@@ -225,19 +214,19 @@ public class SocksProxySelector extends ProxySelector {
 	}
 	
 	private PaymentChannelClientConnection openPaymentChannel(int timeoutSecs, RemoteProxyAddress proxyServer) throws InterruptedException, IOException, ValueOutOfRangeException, ExecutionException {
-		System.out.println("appkit state2:" + appKit.state());
 		InetSocketAddress server = new InetSocketAddress(proxyServer.address().getAddress(), 4242);
 		
 		PaymentChannelClientConnection client = new PaymentChannelClientConnection(
 				server, timeoutSecs, appKit.wallet(), myKey, channelSize.add(Wallet.SendRequest.DEFAULT_FEE_PER_KB), proxyServer.address().getHostName());
-		System.out.println("Putting " + channelSize.add(Wallet.SendRequest.DEFAULT_FEE_PER_KB) + " in channel");
 		// Opening the channel requires talking to the server, so it's asynchronous.
 
 		return client.getChannelOpenFuture().get();
 	}
 	
 	private void sendPayment(PaymentChannelClientConnection client) {
-		System.out.println("Sending payment to server");
+		System.out.println("Putting " + channelSize.add(Wallet.SendRequest.DEFAULT_FEE_PER_KB) + " in channel");
+		System.out.println("Channel now has " + client.state().getValueSpent() + " sent and " + client.state().getValueRefunded() + " refunded");
+		
 		final Coin MICROPAYMENT_SIZE = CENT.divide(10);
 		try {
 			// Wait because the act of making a micropayment is async, and we're not allowed to overlap.

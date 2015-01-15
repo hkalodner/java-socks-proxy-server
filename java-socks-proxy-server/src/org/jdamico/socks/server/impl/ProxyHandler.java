@@ -191,8 +191,6 @@ public class ProxyHandler	implements	Runnable
 	
 	
 	public	void connectToServer( String server, int port ) throws IOException, UnknownHostException, InterruptedException {
-		long threadID = Thread.currentThread().getId();
-		System.out.println("In connectToServer " + threadID + " " + server + ", " + port);
 		if( server.equals("") )	{
 			close();
 			m_debugLog.error( "Invalid Remote Host Name - Empty String !!!" );
@@ -202,10 +200,8 @@ public class ProxyHandler	implements	Runnable
 		m_ServerSocket = new Socket( server, port );
 		m_ServerSocket.setSoTimeout( Constants.DEFAULT_PROXY_TIMEOUT );
 		
-		m_debugLog.println( "Connected  " + threadID + " to "+m_debugLog.getSocketInfo( m_ServerSocket ) );
-		System.out.println("going to prepare server");
+		m_debugLog.println( "Connected to "+m_debugLog.getSocketInfo( m_ServerSocket ) );
 		prepareServer();
-		System.out.println("Finished  " + threadID + " connecting");
 	}
 
 	protected void prepareServer() throws IOException	{
